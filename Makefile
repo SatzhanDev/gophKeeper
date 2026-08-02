@@ -1,4 +1,4 @@
-.PHONY: build build-server build-client run-server run-client test vet fmt cover
+.PHONY: build build-server build-client run-server run-client test vet fmt cover proto
 
 BIN_DIR := bin
 
@@ -33,3 +33,8 @@ vet:
 ## Форматирование кода
 fmt:
 	gofmt -l -w .
+
+proto:
+	protoc --go_out=. --go_opt=paths=source_relative \
+	       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+	       api/proto/auth/v1/auth.proto
