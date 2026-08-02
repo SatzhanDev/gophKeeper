@@ -3,20 +3,24 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/SatzhanDev/gophKeeper/internal/server/auth"
+	"github.com/SatzhanDev/gophKeeper/internal/server/config"
+	"github.com/SatzhanDev/gophKeeper/internal/server/service"
+	"github.com/SatzhanDev/gophKeeper/internal/server/storage/postgres"
 )
 
 func main() {
 	ctx := context.Background()
 
-	dsn := os.Getenv("DATABASE_DSN")
-	if dsn == "" {
-		log.Fatal("DATABASE_DSN is not set")
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	pool, err := pgxpool.New(ctx, dsn)
+	pool, err := pgxpool.New(ctx, cfg.DatabaseDSN)
 	if err != nil {
 		log.Fatalf("failed to create db pool: %v", err)
 	}
@@ -26,5 +30,10 @@ func main() {
 		log.Fatalf("failed to ping db: %v", err)
 	}
 
-	log.Println("gophkeeper server: connected to db, not implemented yet")
+	users := postgres.NewUserRepo(pool)
+	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTTTL)
+	authService := service.NewAuthService(users, jwtManager)
+	_ = authService // пока не используется — подключим в gRPC-хендлерах в PR-4
+
+	log.Println("gophkeeper server: ready")
 }
