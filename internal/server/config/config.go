@@ -8,12 +8,14 @@ import (
 )
 
 const defaultJWTTTL = 24 * time.Hour
+const defaultGRPCPort = "50051"
 
 // Config — конфигурация сервера GophKeeper.
 type Config struct {
 	DatabaseDSN string
 	JWTSecret   string
 	JWTTTL      time.Duration
+	GRPCPort    string
 }
 
 // Load читает конфигурацию в порядке приоритета:
@@ -25,6 +27,7 @@ func Load() (*Config, error) {
 	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database DSN (env: DATABASE_DSN)")
 	flag.StringVar(&cfg.JWTSecret, "j", "", "JWT signing secret (env: JWT_SECRET)")
 	flag.DurationVar(&cfg.JWTTTL, "t", 0, "JWT TTL, e.g. 24h (env: JWT_TTL)")
+	flag.StringVar(&cfg.GRPCPort, "gp", "", "GRPC port (env: GRPC_PORT)")
 	flag.Parse()
 
 	// Шаг 2: если флаг пуст — пробуем env
@@ -43,6 +46,9 @@ func Load() (*Config, error) {
 			cfg.JWTTTL = d
 		}
 	}
+	if cfg.GRPCPort == "" {
+		cfg.GRPCPort = os.Getenv("GRPC_PORT")
+	}
 
 	// Шаг 3: дефолты
 	if cfg.JWTTTL == 0 {
@@ -53,6 +59,9 @@ func Load() (*Config, error) {
 	}
 	if cfg.JWTSecret == "" {
 		return nil, errors.New("JWT secret is not set (use -j flag or JWT_SECRET env)")
+	}
+	if cfg.GRPCPort == "" {
+		cfg.GRPCPort = defaultGRPCPort
 	}
 
 	return cfg, nil
