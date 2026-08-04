@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	authv1 "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1"
+	"github.com/SatzhanDev/gophKeeper/internal/pkg/model"
 	"github.com/SatzhanDev/gophKeeper/internal/server/service"
 	"github.com/SatzhanDev/gophKeeper/internal/server/storage"
 )
@@ -27,7 +28,12 @@ func NewAuthServer(authService *service.AuthService) *AuthServer {
 
 // Register реализует authv1.AuthServiceServer.
 func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) (*authv1.RegisterResponse, error) {
-	token, err := s.authService.Register(ctx, req.GetLogin(), req.GetPassword())
+	params := model.KDFParams{
+		Time:     req.GetKdfTime(),
+		MemoryKB: req.GetKdfMemoryKb(),
+		Threads:  uint8(req.GetKdfThreads()),
+	}
+	token, err := s.authService.Register(ctx, req.GetLogin(), req.GetPassword(), req.GetKdfSalt(), params, req.GetWrappedDek())
 	if err != nil {
 		if errors.Is(err, storage.ErrLoginTaken) {
 			return nil, status.Error(codes.AlreadyExists, "login already taken")
@@ -39,12 +45,19 @@ func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) 
 
 // Login реализует authv1.AuthServiceServer.
 func (s *AuthServer) Login(ctx context.Context, req *authv1.LoginRequest) (*authv1.LoginResponse, error) {
-	token, err := s.authService.Login(ctx, req.GetLogin(), req.GetPassword())
+	token, salt, params, wrapDek, err := s.authService.Login(ctx, req.GetLogin(), req.GetPassword())
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			return nil, status.Error(codes.Unauthenticated, "invalid login or password")
 		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &authv1.LoginResponse{Token: token}, nil
+	return &authv1.LoginResponse{
+		Token:       token,
+		KdfSalt:     salt,
+		KdfTime:     params.Time,
+		KdfMemoryKb: params.MemoryKB,
+		KdfThreads:  uint32(params.Threads),
+		WrappedDek:  wrapDek,
+	}, nil
 }
