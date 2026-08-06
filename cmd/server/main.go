@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	authv1 "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1"
+	secretv1 "github.com/SatzhanDev/gophKeeper/api/proto/secret/v1"
 	"github.com/SatzhanDev/gophKeeper/internal/server/auth"
 	"github.com/SatzhanDev/gophKeeper/internal/server/config"
 	"github.com/SatzhanDev/gophKeeper/internal/server/grpcserver"
@@ -46,6 +47,10 @@ func main() {
 		grpc.UnaryInterceptor(grpcserver.AuthInterceptor(jwtManager)),
 	)
 	authv1.RegisterAuthServiceServer(grpcServer, grpcserver.NewAuthServer(authService))
+
+	secrets := postgres.NewSecretRepo(pool)
+	secretService := service.NewSecretService(secrets)
+	secretv1.RegisterSecretServiceServer(grpcServer, grpcserver.NewSecretServer(secretService))
 
 	log.Printf("gophkeeper server: listening on :%s", cfg.GRPCPort)
 	if err := grpcServer.Serve(lis); err != nil {

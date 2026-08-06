@@ -1,6 +1,8 @@
 .PHONY: build build-server build-client run-server run-client test vet fmt cover proto
 
 BIN_DIR := bin
+PROTO_FILES := $(wildcard api/proto/*/v1/*.proto)
+
 
 ## Собрать server и client в bin/
 build: build-server build-client
@@ -37,4 +39,4 @@ fmt:
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
 	       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-	       api/proto/auth/v1/auth.proto
+	       $(PROTO_FILES)
