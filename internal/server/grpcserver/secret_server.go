@@ -3,6 +3,7 @@ package grpcserver
 import (
 	"context"
 	"errors"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -48,6 +49,7 @@ func (s *SecretServer) CreateSecret(ctx context.Context, req *secretv1.CreateSec
 		if errors.Is(err, service.ErrInvalidSecretType) {
 			return nil, status.Error(codes.InvalidArgument, "invalid secret type")
 		}
+		log.Printf("CreateSecret: %v", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &secretv1.CreateSecretResponse{Id: secret.ID}, nil
@@ -65,6 +67,7 @@ func (s *SecretServer) GetSecret(ctx context.Context, req *secretv1.GetSecretReq
 		if errors.Is(err, storage.ErrSecretNotFound) {
 			return nil, status.Error(codes.NotFound, "secret not found")
 		}
+		log.Printf("GetSecret: %v", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &secretv1.GetSecretResponse{Secret: toProtoSecret(secret)}, nil
@@ -79,6 +82,7 @@ func (s *SecretServer) ListSecrets(ctx context.Context, _ *secretv1.ListSecretsR
 
 	secrets, err := s.secretService.List(ctx, userID)
 	if err != nil {
+		log.Printf("ListSecrets: %v", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
@@ -101,6 +105,7 @@ func (s *SecretServer) UpdateSecret(ctx context.Context, req *secretv1.UpdateSec
 		if errors.Is(err, storage.ErrVersionConflict) {
 			return nil, status.Error(codes.Aborted, "version conflict")
 		}
+		log.Printf("UpdateSecret: %v", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &secretv1.UpdateSecretResponse{Version: int32(newVersion)}, nil
@@ -117,6 +122,7 @@ func (s *SecretServer) DeleteSecret(ctx context.Context, req *secretv1.DeleteSec
 		if errors.Is(err, storage.ErrSecretNotFound) {
 			return nil, status.Error(codes.NotFound, "secret not found")
 		}
+		log.Printf("DeleteSecret: %v", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &secretv1.DeleteSecretResponse{}, nil
