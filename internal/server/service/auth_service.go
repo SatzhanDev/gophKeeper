@@ -1,3 +1,8 @@
+// Package service содержит бизнес-логику сервера GophKeeper: регистрацию
+// и аутентификацию пользователей (AuthService), а также CRUD-операции над
+// приватными данными (SecretService). Пакет не зависит от конкретного
+// транспорта (gRPC) или хранилища — работает через интерфейсы из
+// internal/server/storage.
 package service
 
 import (

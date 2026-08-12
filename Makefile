@@ -1,4 +1,4 @@
-.PHONY: build build-server build-client run-server run-client test test-integration vet fmt cover proto migrate-up migrate-down migrate-create
+.PHONY: build build-server build-client build-client-all build-client-linux build-client-windows build-client-darwin run-server run-client test test-integration vet fmt cover proto migrate-up migrate-down migrate-create
 
 BIN_DIR := bin
 PROTO_FILES := $(wildcard api/proto/*/v1/*.proto)
@@ -27,6 +27,25 @@ build-client:
 
 ## Собрать server и client в bin/
 build: build-server build-client
+
+## Кросс-сборка клиента под все три требуемые по ТЗ платформы разом.
+build-client-all: build-client-linux build-client-windows build-client-darwin
+
+## Клиент под Linux (amd64)
+build-client-linux:
+	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-client-linux-amd64 ./cmd/client
+
+## Клиент под Windows (amd64). Расширение .exe обязательно — иначе Windows
+## не опознает файл как исполняемый.
+build-client-windows:
+	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-client-windows-amd64.exe ./cmd/client
+
+## Клиент под macOS: amd64 (Intel) и arm64 (Apple Silicon) отдельными
+## бинарниками — Go не умеет собирать один "универсальный" файл под обе
+## архитектуры без дополнительных внешних инструментов (lipo).
+build-client-darwin:
+	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-client-darwin-amd64 ./cmd/client
+	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-client-darwin-arm64 ./cmd/client
 
 ## Запустить сервер/клиент без сборки бинарника
 run-server:
