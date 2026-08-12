@@ -49,6 +49,9 @@ func Run(serverAddr string) error {
 		fmt.Print("gophkeeper> ")
 		if !scanner.Scan() {
 			fmt.Println()
+			if err := scanner.Err(); err != nil {
+				return err
+			}
 			return nil
 		}
 
@@ -82,6 +85,8 @@ func dispatch(st *state, cmd string, args []string) error {
 		return requireAuth(st, func() error { return cmdAdd(st, args) })
 	case "delete":
 		return requireAuth(st, func() error { return cmdDelete(st, args) })
+	case "update":
+		return requireAuth(st, func() error { return cmdUpdate(st, args) })
 	case "help":
 		printHelp()
 		return nil
@@ -107,5 +112,6 @@ func printHelp() {
   get <id>          показать расшифрованный секрет
   add               добавить новый секрет
   delete <id>       удалить секрет
+  update <id>       обновить существующий секрет
   exit              выйти`)
 }
