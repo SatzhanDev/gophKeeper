@@ -13,14 +13,20 @@ JWT_SECRET   ?= dev-secret-change-me
 GRPC_PORT    ?= 50051
 SERVER_ADDR  ?= localhost:50051
 
-## Собрать server и client в bin/
-build: build-server build-client
+
+VERSION    := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS    := -X 'github.com/SatzhanDev/gophKeeper/internal/pkg/version.Version=$(VERSION)' \
+              -X 'github.com/SatzhanDev/gophKeeper/internal/pkg/version.BuildDate=$(BUILD_DATE)'
 
 build-server:
-	go build -o $(BIN_DIR)/gophkeeper-server ./cmd/server
+	go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-server ./cmd/server
 
 build-client:
-	go build -o $(BIN_DIR)/gophkeeper-client ./cmd/client
+	go build -ldflags "$(LDFLAGS)" -o $(BIN_DIR)/gophkeeper-client ./cmd/client
+
+## Собрать server и client в bin/
+build: build-server build-client
 
 ## Запустить сервер/клиент без сборки бинарника
 run-server:
