@@ -15,16 +15,22 @@ type Config struct {
 	ShowVersion bool
 }
 
-// Load читает конфигурацию: сначала флаг, если пуст — переменная
-// окружения, если и она пуста — встроенный дефолт.
-func Load() *Config {
+// Load читает конфигурацию из аргументов командной строки args (обычно
+// os.Args[1:]): сначала флаг, если пуст — переменная окружения, если и она
+// пуста — встроенный дефолт.
+//
+// args принимается явным параметром, а флаги регистрируются в отдельном
+// FlagSet (а не в глобальном flag.CommandLine), чтобы Load можно было
+// безопасно вызывать многократно в юнит-тестах.
+func Load(args []string) (*Config, error) {
 	cfg := &Config{}
 
-	// Шаг 1: флаг
-	flag.StringVar(&cfg.ServerAddr, "server", "", "адрес gRPC-сервера (env: GOPHKEEPER_SERVER)")
-	flag.BoolVar(&cfg.ShowVersion, "version", false, "показать версию клиента и выйти")
-
-	flag.Parse()
+	fs := flag.NewFlagSet("gophkeeper-client", flag.ContinueOnError)
+	fs.StringVar(&cfg.ServerAddr, "server", "", "адрес gRPC-сервера (env: GOPHKEEPER_SERVER)")
+	fs.BoolVar(&cfg.ShowVersion, "version", false, "показать версию клиента и выйти")
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
 
 	// Шаг 2: если флаг пуст — пробуем env
 	if cfg.ServerAddr == "" {
@@ -36,5 +42,5 @@ func Load() *Config {
 		cfg.ServerAddr = defaultServerAddr
 	}
 
-	return cfg
+	return cfg, nil
 }

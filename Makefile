@@ -1,4 +1,4 @@
-.PHONY: build build-server build-client run-server run-client test vet fmt cover proto migrate-up migrate-down migrate-create
+.PHONY: build build-server build-client run-server run-client test test-integration vet fmt cover proto migrate-up migrate-down migrate-create
 
 BIN_DIR := bin
 PROTO_FILES := $(wildcard api/proto/*/v1/*.proto)
@@ -47,9 +47,22 @@ migrate-down:
 migrate-create:
 	migrate create -ext sql -dir migrations -seq $(name)
 
-## Юнит-тесты со сбором покрытия в coverage.out
+## Пакеты, для которых считаем покрытие: без сгенерированного
+## protobuf-кода (api/proto/... — там нет и не должно быть собственных
+## тестов, это механическая (де)сериализация) и без cmd/... (тонкие точки
+## входа main(), которые только связывают уже протестированные компоненты).
+COVER_PKGS := $(shell go list ./... | grep -v '/api/proto/' | grep -v '/cmd/')
+
+## Юнит-тесты со сбором покрытия в coverage.out. Интеграционные тесты
+## (storage/postgres/integration_test.go) собраны под build-тегом
+## "integration" и в этот прогон не попадают — им нужен Docker.
 test:
-	go test ./... -race -coverprofile=coverage.out
+	go test $(COVER_PKGS) -race -coverprofile=coverage.out
+
+## Интеграционные тесты репозиториев поверх настоящего Postgres в Docker
+## (testcontainers-go сам поднимет и остановит контейнер).
+test-integration:
+	go test -tags=integration ./internal/server/storage/postgres/... -v
 
 ## Показать процент покрытия тестами по всему проекту
 cover: test

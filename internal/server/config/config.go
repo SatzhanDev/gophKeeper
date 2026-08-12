@@ -18,17 +18,27 @@ type Config struct {
 	GRPCPort    string
 }
 
-// Load читает конфигурацию в порядке приоритета:
+// Load читает конфигурацию из аргументов командной строки args (обычно
+// os.Args[1:]) в порядке приоритета:
 // 1) флаги командной строки, 2) переменные окружения, 3) дефолтные значения.
-func Load() (*Config, error) {
+//
+// args принимается явным параметром (а не читается из os.Args внутри
+// функции), чтобы Load можно было вызывать в юнит-тестах с разными
+// наборами аргументов без побочных эффектов на глобальное состояние.
+func Load(args []string) (*Config, error) {
 	cfg := &Config{}
 
-	// Шаг 1: флаги
-	flag.StringVar(&cfg.DatabaseDSN, "d", "", "database DSN (env: DATABASE_DSN)")
-	flag.StringVar(&cfg.JWTSecret, "j", "", "JWT signing secret (env: JWT_SECRET)")
-	flag.DurationVar(&cfg.JWTTTL, "t", 0, "JWT TTL, e.g. 24h (env: JWT_TTL)")
-	flag.StringVar(&cfg.GRPCPort, "gp", "", "GRPC port (env: GRPC_PORT)")
-	flag.Parse()
+	// Шаг 1: флаги. Используем отдельный FlagSet, а не глобальный
+	// flag.CommandLine — иначе повторный вызов Load (например, из разных
+	// тестов) паникует с "flag redefined".
+	fs := flag.NewFlagSet("gophkeeper-server", flag.ContinueOnError)
+	fs.StringVar(&cfg.DatabaseDSN, "d", "", "database DSN (env: DATABASE_DSN)")
+	fs.StringVar(&cfg.JWTSecret, "j", "", "JWT signing secret (env: JWT_SECRET)")
+	fs.DurationVar(&cfg.JWTTTL, "t", 0, "JWT TTL, e.g. 24h (env: JWT_TTL)")
+	fs.StringVar(&cfg.GRPCPort, "gp", "", "GRPC port (env: GRPC_PORT)")
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
 
 	// Шаг 2: если флаг пуст — пробуем env
 	if cfg.DatabaseDSN == "" {

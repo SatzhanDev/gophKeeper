@@ -16,14 +16,25 @@ import (
 	"github.com/SatzhanDev/gophKeeper/internal/server/storage"
 )
 
+// authServiceIface — минимальный набор методов AuthService, нужный этому
+// gRPC-хендлеру. Определён на стороне потребителя (а не в пакете service),
+// чтобы хендлер зависел только от того, что реально использует — это
+// позволяет подменять реализацию фейком в юнит-тестах хендлера, не поднимая
+// настоящий AuthService и базу данных. *service.AuthService реализует этот
+// интерфейс неявно, никаких изменений в service не требуется.
+type authServiceIface interface {
+	Register(ctx context.Context, login, password string, kdfSalt []byte, params model.KDFParams, wrappedDEK []byte) (string, error)
+	Login(ctx context.Context, login, password string) (token string, salt []byte, params model.KDFParams, wrappedDEK []byte, err error)
+}
+
 // AuthServer реализует authv1.AuthServiceServer.
 type AuthServer struct {
 	authv1.UnimplementedAuthServiceServer
-	authService *service.AuthService
+	authService authServiceIface
 }
 
 // NewAuthServer создаёт AuthServer поверх готового AuthService.
-func NewAuthServer(authService *service.AuthService) *AuthServer {
+func NewAuthServer(authService authServiceIface) *AuthServer {
 	return &AuthServer{authService: authService}
 }
 

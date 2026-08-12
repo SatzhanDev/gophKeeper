@@ -14,14 +14,24 @@ import (
 	"github.com/SatzhanDev/gophKeeper/internal/server/storage"
 )
 
+// secretServiceIface — минимальный набор методов SecretService, нужный
+// этому gRPC-хендлеру (см. пояснение в auth_server.go про authServiceIface).
+type secretServiceIface interface {
+	Create(ctx context.Context, userID int64, t model.SecretType, data []byte, metadata string) (*model.Secret, error)
+	Get(ctx context.Context, userID, id int64) (*model.Secret, error)
+	List(ctx context.Context, userID int64) ([]*model.Secret, error)
+	Update(ctx context.Context, userID, id int64, data []byte, metadata string, version int) (int, error)
+	Delete(ctx context.Context, userID, id int64) error
+}
+
 // SecretServer реализует secretv1.SecretServiceServer.
 type SecretServer struct {
 	secretv1.UnimplementedSecretServiceServer
-	secretService *service.SecretService
+	secretService secretServiceIface
 }
 
 // NewSecretServer создаёт SecretServer поверх готового SecretService.
-func NewSecretServer(secretService *service.SecretService) *SecretServer {
+func NewSecretServer(secretService secretServiceIface) *SecretServer {
 	return &SecretServer{secretService: secretService}
 }
 
