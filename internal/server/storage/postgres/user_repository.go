@@ -29,8 +29,10 @@ func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
 func (r *UserRepo) Create(ctx context.Context, u *model.User) (int64, error) {
 	var id int64
 	err := r.pool.QueryRow(ctx,
-		`INSERT INTO users (login, password_hash) VALUES ($1, $2) RETURNING id`,
-		u.Login, u.PasswordHash,
+		`INSERT INTO users (login, password_hash, kdf_salt, kdf_time, kdf_memory_kb, kdf_threads, wrapped_dek)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7)
+		 RETURNING id`,
+		u.Login, u.PasswordHash, u.KDFSalt, u.KDFParams.Time, u.KDFParams.MemoryKB, u.KDFParams.Threads, u.WrappedDEK,
 	).Scan(&id)
 
 	if err != nil {
@@ -46,16 +48,30 @@ func (r *UserRepo) Create(ctx context.Context, u *model.User) (int64, error) {
 // GetByLogin реализует storage.UserRepository.
 func (r *UserRepo) GetByLogin(ctx context.Context, login string) (*model.User, error) {
 	var u model.User
+	var kdfTime, kdfMemoryKB int32
+	var kdfThreads int16
+
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, login, password_hash, created_at FROM users WHERE login = $1`,
+		`SELECT id, login, password_hash, kdf_salt, kdf_time, kdf_memory_kb, kdf_threads, wrapped_dek, created_at
+		 FROM users WHERE login = $1`,
 		login,
-	).Scan(&u.ID, &u.Login, &u.PasswordHash, &u.CreatedAt)
+	).Scan(
+		&u.ID, &u.Login, &u.PasswordHash, &u.KDFSalt,
+		&kdfTime, &kdfMemoryKB, &kdfThreads,
+		&u.WrappedDEK, &u.CreatedAt,
+	)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, storage.ErrUserNotFound
 		}
 		return nil, err
+	}
+
+	u.KDFParams = model.KDFParams{
+		Time:     uint32(kdfTime),
+		MemoryKB: uint32(kdfMemoryKB),
+		Threads:  uint8(kdfThreads),
 	}
 	return &u, nil
 }

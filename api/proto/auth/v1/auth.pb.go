@@ -26,6 +26,11 @@ type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	KdfSalt       []byte                 `protobuf:"bytes,3,opt,name=kdf_salt,json=kdfSalt,proto3" json:"kdf_salt,omitempty"`
+	KdfTime       uint32                 `protobuf:"varint,4,opt,name=kdf_time,json=kdfTime,proto3" json:"kdf_time,omitempty"`
+	KdfMemoryKb   uint32                 `protobuf:"varint,5,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3" json:"kdf_memory_kb,omitempty"`
+	KdfThreads    uint32                 `protobuf:"varint,6,opt,name=kdf_threads,json=kdfThreads,proto3" json:"kdf_threads,omitempty"`
+	WrappedDek    []byte                 `protobuf:"bytes,7,opt,name=wrapped_dek,json=wrappedDek,proto3" json:"wrapped_dek,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -72,6 +77,41 @@ func (x *RegisterRequest) GetPassword() string {
 		return x.Password
 	}
 	return ""
+}
+
+func (x *RegisterRequest) GetKdfSalt() []byte {
+	if x != nil {
+		return x.KdfSalt
+	}
+	return nil
+}
+
+func (x *RegisterRequest) GetKdfTime() uint32 {
+	if x != nil {
+		return x.KdfTime
+	}
+	return 0
+}
+
+func (x *RegisterRequest) GetKdfMemoryKb() uint32 {
+	if x != nil {
+		return x.KdfMemoryKb
+	}
+	return 0
+}
+
+func (x *RegisterRequest) GetKdfThreads() uint32 {
+	if x != nil {
+		return x.KdfThreads
+	}
+	return 0
+}
+
+func (x *RegisterRequest) GetWrappedDek() []byte {
+	if x != nil {
+		return x.WrappedDek
+	}
+	return nil
 }
 
 type RegisterResponse struct {
@@ -173,6 +213,11 @@ func (x *LoginRequest) GetPassword() string {
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	KdfSalt       []byte                 `protobuf:"bytes,2,opt,name=kdf_salt,json=kdfSalt,proto3" json:"kdf_salt,omitempty"`
+	KdfTime       uint32                 `protobuf:"varint,3,opt,name=kdf_time,json=kdfTime,proto3" json:"kdf_time,omitempty"`
+	KdfMemoryKb   uint32                 `protobuf:"varint,4,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3" json:"kdf_memory_kb,omitempty"`
+	KdfThreads    uint32                 `protobuf:"varint,5,opt,name=kdf_threads,json=kdfThreads,proto3" json:"kdf_threads,omitempty"`
+	WrappedDek    []byte                 `protobuf:"bytes,6,opt,name=wrapped_dek,json=wrappedDek,proto3" json:"wrapped_dek,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -214,21 +259,70 @@ func (x *LoginResponse) GetToken() string {
 	return ""
 }
 
+func (x *LoginResponse) GetKdfSalt() []byte {
+	if x != nil {
+		return x.KdfSalt
+	}
+	return nil
+}
+
+func (x *LoginResponse) GetKdfTime() uint32 {
+	if x != nil {
+		return x.KdfTime
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetKdfMemoryKb() uint32 {
+	if x != nil {
+		return x.KdfMemoryKb
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetKdfThreads() uint32 {
+	if x != nil {
+		return x.KdfThreads
+	}
+	return 0
+}
+
+func (x *LoginResponse) GetWrappedDek() []byte {
+	if x != nil {
+		return x.WrappedDek
+	}
+	return nil
+}
+
 var File_api_proto_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_api_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/proto/auth/v1/auth.proto\x12\aauth.v1\"C\n" +
+	"\x1capi/proto/auth/v1/auth.proto\x12\aauth.v1\"\xdf\x01\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"(\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x19\n" +
+	"\bkdf_salt\x18\x03 \x01(\fR\akdfSalt\x12\x19\n" +
+	"\bkdf_time\x18\x04 \x01(\rR\akdfTime\x12\"\n" +
+	"\rkdf_memory_kb\x18\x05 \x01(\rR\vkdfMemoryKb\x12\x1f\n" +
+	"\vkdf_threads\x18\x06 \x01(\rR\n" +
+	"kdfThreads\x12\x1f\n" +
+	"\vwrapped_dek\x18\a \x01(\fR\n" +
+	"wrappedDek\"(\n" +
 	"\x10RegisterResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"%\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xc1\x01\n" +
 	"\rLoginResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token2\x86\x01\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x19\n" +
+	"\bkdf_salt\x18\x02 \x01(\fR\akdfSalt\x12\x19\n" +
+	"\bkdf_time\x18\x03 \x01(\rR\akdfTime\x12\"\n" +
+	"\rkdf_memory_kb\x18\x04 \x01(\rR\vkdfMemoryKb\x12\x1f\n" +
+	"\vkdf_threads\x18\x05 \x01(\rR\n" +
+	"kdfThreads\x12\x1f\n" +
+	"\vwrapped_dek\x18\x06 \x01(\fR\n" +
+	"wrappedDek2\x86\x01\n" +
 	"\vAuthService\x12?\n" +
 	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponseB;Z9github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1b\x06proto3"

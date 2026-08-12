@@ -23,34 +23,47 @@ func NewAuthService(users storage.UserRepository, jwt *auth.JWTManager) *AuthSer
 	return &AuthService{users: users, jwt: jwt}
 }
 
-// Register регистрирует нового пользователя и возвращает токен доступа.
-func (s *AuthService) Register(ctx context.Context, login, password string) (string, error) {
+// Register регистрирует пользователя с уже готовым клиентским крипто-материалом
+// (соль, параметры KDF, обёрнутый DEK) и возвращает токен доступа.
+func (s *AuthService) Register(ctx context.Context, login, password string, kdfSalt []byte, params model.KDFParams, wrappedDEK []byte) (string, error) {
+	if len(kdfSalt) == 0 || len(wrappedDEK) == 0 {
+		return "", errors.New("missing crypto material")
+	}
+
 	hash, err := auth.HashPassword(password)
 	if err != nil {
 		return "", err
 	}
 
-	id, err := s.users.Create(ctx, &model.User{Login: login, PasswordHash: hash})
+	id, err := s.users.Create(ctx, &model.User{
+		Login:        login,
+		PasswordHash: hash,
+		KDFSalt:      kdfSalt,
+		KDFParams:    params,
+		WrappedDEK:   wrappedDEK,
+	})
 	if err != nil {
-		return "", err // storage.ErrLoginTaken пробрасывается как есть
+		return "", err
 	}
 
 	return s.jwt.Generate(id)
 }
 
-// Login проверяет учётные данные и возвращает токен доступа.
-func (s *AuthService) Login(ctx context.Context, login, password string) (string, error) {
-	u, err := s.users.GetByLogin(ctx, login)
-	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", ErrInvalidCredentials
+// Login проверяет учётные данные и возвращает токен доступа вместе
+// с крипто-материалом, нужным клиенту для восстановления DEK.
+func (s *AuthService) Login(ctx context.Context, login, password string) (token string, salt []byte, params model.KDFParams, wrappedDEK []byte, err error) {
+	u, getErr := s.users.GetByLogin(ctx, login)
+	if getErr != nil {
+		if errors.Is(getErr, storage.ErrUserNotFound) {
+			return "", nil, model.KDFParams{}, nil, ErrInvalidCredentials
 		}
-		return "", err
+		return "", nil, model.KDFParams{}, nil, getErr
 	}
 
-	if err := auth.ComparePassword(u.PasswordHash, password); err != nil {
-		return "", ErrInvalidCredentials
+	if cmpErr := auth.ComparePassword(u.PasswordHash, password); cmpErr != nil {
+		return "", nil, model.KDFParams{}, nil, ErrInvalidCredentials
 	}
 
-	return s.jwt.Generate(u.ID)
+	token, err = s.jwt.Generate(u.ID)
+	return token, u.KDFSalt, u.KDFParams, u.WrappedDEK, err
 }

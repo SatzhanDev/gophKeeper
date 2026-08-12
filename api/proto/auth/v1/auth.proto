@@ -13,6 +13,11 @@ service AuthService {
 message RegisterRequest {
   string login = 1;
   string password = 2;
+  bytes  kdf_salt = 3;
+  uint32 kdf_time = 4;
+  uint32 kdf_memory_kb = 5;
+  uint32 kdf_threads = 6;
+  bytes  wrapped_dek = 7;
 }
 
 message RegisterResponse {
@@ -26,4 +31,9 @@ message LoginRequest {
 
 message LoginResponse {
   string token = 1;
+  bytes  kdf_salt = 2;
+  uint32 kdf_time = 3;
+  uint32 kdf_memory_kb = 4;
+  uint32 kdf_threads = 5;
+  bytes  wrapped_dek = 6;
 }
