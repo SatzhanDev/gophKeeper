@@ -9,6 +9,8 @@ import (
 	secretv1 "github.com/SatzhanDev/gophKeeper/api/proto/secret/v1"
 	"github.com/SatzhanDev/gophKeeper/internal/client/crypto"
 	"github.com/SatzhanDev/gophKeeper/internal/client/grpcclient"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // cmdList реализует команду "list": выводит список секретов пользователя
@@ -119,4 +121,48 @@ func parseSecretType(s string) (secretv1.SecretType, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// cmdUpdate реализует команду "update <id> <metadata> <данные>":
+// подтягивает текущую версию секрета с сервера, шифрует новые данные
+// и отправляет обновление с этой версией — если за это время секрет
+// успел измениться на другом устройстве, сервер вернёт конфликт версий.
+func cmdUpdate(st *state, args []string) error {
+	if len(args) < 3 {
+		return fmt.Errorf("использование: update <id> <metadata> <данные>")
+	}
+	id, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("некорректный id: %w", err)
+	}
+	metadata := args[1]
+	data := strings.Join(args[2:], " ")
+
+	ctx := grpcclient.AuthContext(context.Background(), st.token)
+
+	current, err := st.secretClient.GetSecret(ctx, &secretv1.GetSecretRequest{Id: id})
+	if err != nil {
+		return err
+	}
+
+	encrypted, err := crypto.Encrypt(st.dek, []byte(data))
+	if err != nil {
+		return err
+	}
+
+	_, err = st.secretClient.UpdateSecret(ctx, &secretv1.UpdateSecretRequest{
+		Id:       id,
+		Data:     encrypted,
+		Metadata: metadata,
+		Version:  current.GetSecret().GetVersion(),
+	})
+	if err != nil {
+		if status.Code(err) == codes.Aborted {
+			return fmt.Errorf("запись изменена на другом устройстве, выполните 'get %d' и попробуйте снова", id)
+		}
+		return err
+	}
+
+	fmt.Println("Секрет обновлён")
+	return nil
 }
