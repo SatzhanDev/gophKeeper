@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/SatzhanDev/gophKeeper/internal/client/cli"
+	"github.com/SatzhanDev/gophKeeper/internal/client/config"
+)
 
 func main() {
-	fmt.Println("gophkeeper client: not implemented yet")
+	cfg := config.Load()
+
+	if err := cli.Run(cfg.ServerAddr); err != nil {
+		log.Fatal(err)
+	}
 }
