@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/SatzhanDev/gophKeeper/internal/client/cli"
 	"github.com/SatzhanDev/gophKeeper/internal/client/config"
@@ -10,7 +11,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load(os.Args[1:])
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if cfg.ShowVersion {
 		fmt.Println(version.String("client"))

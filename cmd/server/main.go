@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
@@ -20,7 +21,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	cfg, err := config.Load()
+	cfg, err := config.Load(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}
