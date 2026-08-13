@@ -1,3 +1,5 @@
+// Package postgres реализует интерфейсы storage.UserRepository и
+// storage.SecretRepository поверх PostgreSQL с использованием драйвера pgx.
 package postgres
 
 import (
