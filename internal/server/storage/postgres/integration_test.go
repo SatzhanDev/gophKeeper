@@ -20,7 +20,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/SatzhanDev/gophKeeper/internal/pkg/model"
 	"github.com/SatzhanDev/gophKeeper/internal/server/storage"
@@ -35,13 +37,20 @@ func setupTestDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	ctx := context.Background()
 
-	// Модуль postgres из testcontainers-go по умолчанию сам ждёт готовности
-	// сервера (по логу "database system is ready to accept connections"),
-	// отдельная стратегия ожидания не требуется.
+	// Официальный образ postgres при первом запуске один раз перезапускает
+	// сам себя после initdb — если подключиться в этот момент, соединение
+	// обрывается ("connection reset by peer"). Ждём фразу о готовности в
+	// логах ДВАЖДЫ: первый раз — до внутреннего рестарта, второй — после,
+	// это и есть надёжный сигнал реальной готовности принимать соединения.
 	container, err := tcpostgres.Run(ctx, "postgres:16",
 		tcpostgres.WithDatabase("gophkeeper_test"),
 		tcpostgres.WithUsername("postgres"),
 		tcpostgres.WithPassword("postgres"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(60*time.Second),
+		),
 	)
 	require.NoError(t, err)
 	t.Cleanup(func() {

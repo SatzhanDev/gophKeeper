@@ -11,6 +11,7 @@ PROTO_FILES := $(wildcard api/proto/*/v1/*.proto)
 DATABASE_DSN ?= postgres://postgres:postgres@localhost:5433/gophkeeper?sslmode=disable
 JWT_SECRET   ?= dev-secret-change-me
 GRPC_PORT    ?= 50051
+HTTP_PORT    ?= 8080
 SERVER_ADDR  ?= localhost:50051
 
 
@@ -49,7 +50,7 @@ build-client-darwin:
 
 ## Запустить сервер/клиент без сборки бинарника
 run-server:
-	DATABASE_DSN=$(DATABASE_DSN) JWT_SECRET=$(JWT_SECRET) GRPC_PORT=$(GRPC_PORT) go run ./cmd/server
+	DATABASE_DSN=$(DATABASE_DSN) JWT_SECRET=$(JWT_SECRET) GRPC_PORT=$(GRPC_PORT) HTTP_PORT=$(HTTP_PORT) go run ./cmd/server
 
 run-client:
 	GOPHKEEPER_SERVER=$(SERVER_ADDR) go run ./cmd/client
@@ -96,6 +97,9 @@ fmt:
 	gofmt -l -w .
 
 proto:
-	protoc --go_out=. --go_opt=paths=source_relative \
+	protoc -I. -Ithird_party/googleapis \
+	       --go_out=. --go_opt=paths=source_relative \
 	       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+	       --grpc-gateway_out=. --grpc-gateway_opt=paths=source_relative \
+	       --openapiv2_out=. \
 	       $(PROTO_FILES)

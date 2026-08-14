@@ -11,6 +11,7 @@ import (
 
 const defaultJWTTTL = 24 * time.Hour
 const defaultGRPCPort = "50051"
+const defaultHTTPPort = "8080"
 
 // Config — конфигурация сервера GophKeeper.
 type Config struct {
@@ -18,6 +19,8 @@ type Config struct {
 	JWTSecret   string
 	JWTTTL      time.Duration
 	GRPCPort    string
+	// HTTPPort — порт REST/Swagger-шлюза (grpc-gateway) поверх gRPC API.
+	HTTPPort string
 }
 
 // Load читает конфигурацию из аргументов командной строки args (обычно
@@ -38,6 +41,7 @@ func Load(args []string) (*Config, error) {
 	fs.StringVar(&cfg.JWTSecret, "j", "", "JWT signing secret (env: JWT_SECRET)")
 	fs.DurationVar(&cfg.JWTTTL, "t", 0, "JWT TTL, e.g. 24h (env: JWT_TTL)")
 	fs.StringVar(&cfg.GRPCPort, "gp", "", "GRPC port (env: GRPC_PORT)")
+	fs.StringVar(&cfg.HTTPPort, "hp", "", "HTTP port for REST/Swagger gateway (env: HTTP_PORT)")
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
@@ -61,6 +65,9 @@ func Load(args []string) (*Config, error) {
 	if cfg.GRPCPort == "" {
 		cfg.GRPCPort = os.Getenv("GRPC_PORT")
 	}
+	if cfg.HTTPPort == "" {
+		cfg.HTTPPort = os.Getenv("HTTP_PORT")
+	}
 
 	// Шаг 3: дефолты
 	if cfg.JWTTTL == 0 {
@@ -74,6 +81,9 @@ func Load(args []string) (*Config, error) {
 	}
 	if cfg.GRPCPort == "" {
 		cfg.GRPCPort = defaultGRPCPort
+	}
+	if cfg.HTTPPort == "" {
+		cfg.HTTPPort = defaultHTTPPort
 	}
 
 	return cfg, nil

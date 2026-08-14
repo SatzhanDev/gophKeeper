@@ -7,11 +7,13 @@
 package secretv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	_ "google.golang.org/genproto/googleapis/api/annotations"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -638,7 +640,7 @@ var File_api_proto_secret_v1_secret_proto protoreflect.FileDescriptor
 
 const file_api_proto_secret_v1_secret_proto_rawDesc = "" +
 	"\n" +
-	" api/proto/secret/v1/secret.proto\x12\tsecret.v1\"\xcb\x01\n" +
+	" api/proto/secret/v1/secret.proto\x12\tsecret.v1\x1a\x1cgoogle/api/annotations.proto\"\xcb\x01\n" +
 	"\x06Secret\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12)\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x15.secret.v1.SecretTypeR\x04type\x12\x12\n" +
@@ -678,13 +680,13 @@ const file_api_proto_secret_v1_secret_proto_rawDesc = "" +
 	"\x1aSECRET_TYPE_LOGIN_PASSWORD\x10\x01\x12\x14\n" +
 	"\x10SECRET_TYPE_TEXT\x10\x02\x12\x16\n" +
 	"\x12SECRET_TYPE_BINARY\x10\x03\x12\x14\n" +
-	"\x10SECRET_TYPE_CARD\x10\x042\x98\x03\n" +
-	"\rSecretService\x12O\n" +
-	"\fCreateSecret\x12\x1e.secret.v1.CreateSecretRequest\x1a\x1f.secret.v1.CreateSecretResponse\x12F\n" +
-	"\tGetSecret\x12\x1b.secret.v1.GetSecretRequest\x1a\x1c.secret.v1.GetSecretResponse\x12L\n" +
-	"\vListSecrets\x12\x1d.secret.v1.ListSecretsRequest\x1a\x1e.secret.v1.ListSecretsResponse\x12O\n" +
-	"\fUpdateSecret\x12\x1e.secret.v1.UpdateSecretRequest\x1a\x1f.secret.v1.UpdateSecretResponse\x12O\n" +
-	"\fDeleteSecret\x12\x1e.secret.v1.DeleteSecretRequest\x1a\x1f.secret.v1.DeleteSecretResponseB?Z=github.com/SatzhanDev/gophKeeper/api/proto/secret/v1;secretv1b\x06proto3"
+	"\x10SECRET_TYPE_CARD\x10\x042\x96\x04\n" +
+	"\rSecretService\x12g\n" +
+	"\fCreateSecret\x12\x1e.secret.v1.CreateSecretRequest\x1a\x1f.secret.v1.CreateSecretResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/v1/secrets\x12`\n" +
+	"\tGetSecret\x12\x1b.secret.v1.GetSecretRequest\x1a\x1c.secret.v1.GetSecretResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/v1/secrets/{id}\x12a\n" +
+	"\vListSecrets\x12\x1d.secret.v1.ListSecretsRequest\x1a\x1e.secret.v1.ListSecretsResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/v1/secrets\x12l\n" +
+	"\fUpdateSecret\x12\x1e.secret.v1.UpdateSecretRequest\x1a\x1f.secret.v1.UpdateSecretResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\x1a\x10/v1/secrets/{id}\x12i\n" +
+	"\fDeleteSecret\x12\x1e.secret.v1.DeleteSecretRequest\x1a\x1f.secret.v1.DeleteSecretResponse\"\x18\x82\xd3\xe4\x93\x02\x12*\x10/v1/secrets/{id}B?Z=github.com/SatzhanDev/gophKeeper/api/proto/secret/v1;secretv1b\x06proto3"
 
 var (
 	file_api_proto_secret_v1_secret_proto_rawDescOnce sync.Once

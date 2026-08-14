@@ -7,6 +7,7 @@
 package authv1
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -297,7 +298,7 @@ var File_api_proto_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_api_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x1capi/proto/auth/v1/auth.proto\x12\aauth.v1\"\xdf\x01\n" +
+	"\x1capi/proto/auth/v1/auth.proto\x12\aauth.v1\x1a\x1cgoogle/api/annotations.proto\"\xdf\x01\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x19\n" +
@@ -321,10 +322,10 @@ const file_api_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\vkdf_threads\x18\x05 \x01(\rR\n" +
 	"kdfThreads\x12\x1f\n" +
 	"\vwrapped_dek\x18\x06 \x01(\fR\n" +
-	"wrappedDek2\x86\x01\n" +
-	"\vAuthService\x12?\n" +
-	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\x126\n" +
-	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponseB;Z9github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1b\x06proto3"
+	"wrappedDek2\xbf\x01\n" +
+	"\vAuthService\x12]\n" +
+	"\bRegister\x12\x18.auth.v1.RegisterRequest\x1a\x19.auth.v1.RegisterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/v1/auth/register\x12Q\n" +
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/auth/loginB;Z9github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1b\x06proto3"
 
 var (
 	file_api_proto_auth_v1_auth_proto_rawDescOnce sync.Once
