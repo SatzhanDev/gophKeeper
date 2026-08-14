@@ -2,13 +2,10 @@ syntax = "proto3";
 
 package auth.v1;
 
-option go_package = "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1";
+import "google/api/annotations.proto";
 
-// AuthService отвечает за регистрацию и аутентификацию пользователей.
-service AuthService {
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  rpc Login(LoginRequest) returns (LoginResponse);
-}
+
+option go_package = "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1";
 
 message RegisterRequest {
   string login = 1;
@@ -36,4 +33,20 @@ message LoginResponse {
   uint32 kdf_memory_kb = 4;
   uint32 kdf_threads = 5;
   bytes  wrapped_dek = 6;
+}
+
+// AuthService отвечает за регистрацию и аутентификацию пользователей.
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
 }
