@@ -5,7 +5,7 @@ package grpcserver
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -50,7 +50,7 @@ func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) 
 		if errors.Is(err, storage.ErrLoginTaken) {
 			return nil, status.Error(codes.AlreadyExists, "login already taken")
 		}
-		log.Printf("Register: %v", err)
+		slog.Error("register failed", "component", "grpcserver.AuthServer", "method", "Register", "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &authv1.RegisterResponse{Token: token}, nil
@@ -63,7 +63,7 @@ func (s *AuthServer) Login(ctx context.Context, req *authv1.LoginRequest) (*auth
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			return nil, status.Error(codes.Unauthenticated, "invalid login or password")
 		}
-		log.Printf("Login: %v", err)
+		slog.Error("login failed", "component", "grpcserver.AuthServer", "method", "Login", "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &authv1.LoginResponse{

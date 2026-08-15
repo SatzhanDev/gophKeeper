@@ -8,7 +8,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	authv1 "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1"
 	secretv1 "github.com/SatzhanDev/gophKeeper/api/proto/secret/v1"
@@ -16,14 +15,20 @@ import (
 
 // New создаёт HTTP-хендлер, транслирующий REST/JSON-запросы в gRPC-вызовы
 // к серверу по адресу grpcAddr.
-func New(ctx context.Context, grpcAddr string) (http.Handler, error) {
+//
+// dialOpts — опции для внутреннего gRPC-подключения шлюза к серверу
+// (в частности, transport credentials). Они намеренно не выбираются внутри
+// этого пакета, а передаются вызывающим кодом (main.go) — там же, где
+// настраивается сам grpcServer. Так оба соединения (внешнее и внутреннее)
+// гарантированно используют одни и те же credentials и не могут разойтись,
+// если один из них позже переведут на TLS, а другой — забудут.
+func New(ctx context.Context, grpcAddr string, dialOpts ...grpc.DialOption) (http.Handler, error) {
 	mux := runtime.NewServeMux(runtime.WithIncomingHeaderMatcher(headerMatcher))
-	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	if err := authv1.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, grpcAddr, opts); err != nil {
+	if err := authv1.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, grpcAddr, dialOpts); err != nil {
 		return nil, err
 	}
-	if err := secretv1.RegisterSecretServiceHandlerFromEndpoint(ctx, mux, grpcAddr, opts); err != nil {
+	if err := secretv1.RegisterSecretServiceHandlerFromEndpoint(ctx, mux, grpcAddr, dialOpts); err != nil {
 		return nil, err
 	}
 	return mux, nil
