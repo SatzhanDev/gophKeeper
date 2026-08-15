@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/api/annotations.proto";
+
+
+option go_package = "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1;authv1";
+
+message RegisterRequest {
+  string login = 1;
+  string password = 2;
+  bytes  kdf_salt = 3;
+  uint32 kdf_time = 4;
+  uint32 kdf_memory_kb = 5;
+  uint32 kdf_threads = 6;
+  bytes  wrapped_dek = 7;
+}
+
+message RegisterResponse {
+  string token = 1;
+}
+
+message LoginRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+  bytes  kdf_salt = 2;
+  uint32 kdf_time = 3;
+  uint32 kdf_memory_kb = 4;
+  uint32 kdf_threads = 5;
+  bytes  wrapped_dek = 6;
+}
+
+// AuthService отвечает за регистрацию и аутентификацию пользователей.
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+}
