@@ -31,29 +31,36 @@ type authServiceIface interface {
 type AuthServer struct {
 	authv1.UnimplementedAuthServiceServer
 	authService authServiceIface
+	logger      *slog.Logger
 }
 
-// NewAuthServer создаёт AuthServer поверх готового AuthService.
-func NewAuthServer(authService authServiceIface) *AuthServer {
-	return &AuthServer{authService: authService}
+// NewAuthServer создаёт AuthServer поверх готового AuthService. logger
+// передаётся явным аргументом (а не берётся из глобального slog.Default())
+// — это позволяет настраивать логирование конкретно для этого компонента
+// (например, добавить постоянное поле "component") и подменять логгер
+// в тестах, вместо того чтобы зависеть от глобального изменяемого состояния.
+func NewAuthServer(authService authServiceIface, logger *slog.Logger) *AuthServer {
+	return &AuthServer{authService: authService, logger: logger}
 }
 
 // Register реализует authv1.AuthServiceServer.
 func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) (*authv1.RegisterResponse, error) {
-	params := model.KDFParams{
+	token, err := s.authService.Register(ctx, req.GetLogin(), req.GetPassword(), req.GetKdfSalt(), model.KDFParams{
 		Time:     req.GetKdfTime(),
 		MemoryKB: req.GetKdfMemoryKb(),
 		Threads:  uint8(req.GetKdfThreads()),
-	}
-	token, err := s.authService.Register(ctx, req.GetLogin(), req.GetPassword(), req.GetKdfSalt(), params, req.GetWrappedDek())
+	}, req.GetWrappedDek())
 	if err != nil {
 		if errors.Is(err, storage.ErrLoginTaken) {
 			return nil, status.Error(codes.AlreadyExists, "login already taken")
 		}
-		slog.Error("register failed", "component", "grpcserver.AuthServer", "method", "Register", "err", err)
+		s.logger.Error("register failed", "method", "Register", "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &authv1.RegisterResponse{Token: token}, nil
+
+	resp := &authv1.RegisterResponse{}
+	resp.SetToken(token)
+	return resp, nil
 }
 
 // Login реализует authv1.AuthServiceServer.
@@ -63,15 +70,16 @@ func (s *AuthServer) Login(ctx context.Context, req *authv1.LoginRequest) (*auth
 		if errors.Is(err, service.ErrInvalidCredentials) {
 			return nil, status.Error(codes.Unauthenticated, "invalid login or password")
 		}
-		slog.Error("login failed", "component", "grpcserver.AuthServer", "method", "Login", "err", err)
+		s.logger.Error("login failed", "method", "Login", "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &authv1.LoginResponse{
-		Token:       token,
-		KdfSalt:     salt,
-		KdfTime:     params.Time,
-		KdfMemoryKb: params.MemoryKB,
-		KdfThreads:  uint32(params.Threads),
-		WrappedDek:  wrapDek,
-	}, nil
+
+	resp := &authv1.LoginResponse{}
+	resp.SetToken(token)
+	resp.SetKdfSalt(salt)
+	resp.SetKdfTime(params.Time)
+	resp.SetKdfMemoryKb(params.MemoryKB)
+	resp.SetKdfThreads(uint32(params.Threads))
+	resp.SetWrappedDek(wrapDek)
+	return resp, nil
 }

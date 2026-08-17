@@ -4,7 +4,7 @@
 // 	protoc        v7.35.1
 // source: api/proto/secret/v1/secret.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package secretv1
 
@@ -76,16 +76,16 @@ func (x SecretType) Number() protoreflect.EnumNumber {
 }
 
 type Secret struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type          SecretType             `protobuf:"varint,2,opt,name=type,proto3,enum=secret.v1.SecretType" json:"type,omitempty"`
-	Data          []byte                 `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
-	Metadata      string                 `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Version       int32                  `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"` // unix seconds
-	UpdatedAt     int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // unix seconds
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id        int64                  `protobuf:"varint,1,opt,name=id,proto3"`
+	xxx_hidden_Type      SecretType             `protobuf:"varint,2,opt,name=type,proto3,enum=secret.v1.SecretType"`
+	xxx_hidden_Data      []byte                 `protobuf:"bytes,3,opt,name=data,proto3"`
+	xxx_hidden_Metadata  string                 `protobuf:"bytes,4,opt,name=metadata,proto3"`
+	xxx_hidden_Version   int32                  `protobuf:"varint,5,opt,name=version,proto3"`
+	xxx_hidden_CreatedAt int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3"`
+	xxx_hidden_UpdatedAt int64                  `protobuf:"varint,7,opt,name=updated_at,json=updatedAt,proto3"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Secret) Reset() {
@@ -115,82 +115,82 @@ func (x *Secret) ProtoReflect() protoreflect.Message {
 
 func (x *Secret) GetId() int64 {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return 0
 }
 
 func (x *Secret) GetType() SecretType {
 	if x != nil {
-		return x.Type
+		return x.xxx_hidden_Type
 	}
 	return SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *Secret) GetData() []byte {
 	if x != nil {
-		return x.Data
+		return x.xxx_hidden_Data
 	}
 	return nil
 }
 
 func (x *Secret) GetMetadata() string {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return ""
 }
 
 func (x *Secret) GetVersion() int32 {
 	if x != nil {
-		return x.Version
+		return x.xxx_hidden_Version
 	}
 	return 0
 }
 
 func (x *Secret) GetCreatedAt() int64 {
 	if x != nil {
-		return x.CreatedAt
+		return x.xxx_hidden_CreatedAt
 	}
 	return 0
 }
 
 func (x *Secret) GetUpdatedAt() int64 {
 	if x != nil {
-		return x.UpdatedAt
+		return x.xxx_hidden_UpdatedAt
 	}
 	return 0
 }
 
 func (x *Secret) SetId(v int64) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *Secret) SetType(v SecretType) {
-	x.Type = v
+	x.xxx_hidden_Type = v
 }
 
 func (x *Secret) SetData(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.Data = v
+	x.xxx_hidden_Data = v
 }
 
 func (x *Secret) SetMetadata(v string) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *Secret) SetVersion(v int32) {
-	x.Version = v
+	x.xxx_hidden_Version = v
 }
 
 func (x *Secret) SetCreatedAt(v int64) {
-	x.CreatedAt = v
+	x.xxx_hidden_CreatedAt = v
 }
 
 func (x *Secret) SetUpdatedAt(v int64) {
-	x.UpdatedAt = v
+	x.xxx_hidden_UpdatedAt = v
 }
 
 type Secret_builder struct {
@@ -209,23 +209,23 @@ func (b0 Secret_builder) Build() *Secret {
 	m0 := &Secret{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Type = b.Type
-	x.Data = b.Data
-	x.Metadata = b.Metadata
-	x.Version = b.Version
-	x.CreatedAt = b.CreatedAt
-	x.UpdatedAt = b.UpdatedAt
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Type = b.Type
+	x.xxx_hidden_Data = b.Data
+	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Version = b.Version
+	x.xxx_hidden_CreatedAt = b.CreatedAt
+	x.xxx_hidden_UpdatedAt = b.UpdatedAt
 	return m0
 }
 
 type CreateSecretRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Type          SecretType             `protobuf:"varint,1,opt,name=type,proto3,enum=secret.v1.SecretType" json:"type,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Metadata      string                 `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Type     SecretType             `protobuf:"varint,1,opt,name=type,proto3,enum=secret.v1.SecretType"`
+	xxx_hidden_Data     []byte                 `protobuf:"bytes,2,opt,name=data,proto3"`
+	xxx_hidden_Metadata string                 `protobuf:"bytes,3,opt,name=metadata,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateSecretRequest) Reset() {
@@ -255,38 +255,38 @@ func (x *CreateSecretRequest) ProtoReflect() protoreflect.Message {
 
 func (x *CreateSecretRequest) GetType() SecretType {
 	if x != nil {
-		return x.Type
+		return x.xxx_hidden_Type
 	}
 	return SecretType_SECRET_TYPE_UNSPECIFIED
 }
 
 func (x *CreateSecretRequest) GetData() []byte {
 	if x != nil {
-		return x.Data
+		return x.xxx_hidden_Data
 	}
 	return nil
 }
 
 func (x *CreateSecretRequest) GetMetadata() string {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return ""
 }
 
 func (x *CreateSecretRequest) SetType(v SecretType) {
-	x.Type = v
+	x.xxx_hidden_Type = v
 }
 
 func (x *CreateSecretRequest) SetData(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.Data = v
+	x.xxx_hidden_Data = v
 }
 
 func (x *CreateSecretRequest) SetMetadata(v string) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 type CreateSecretRequest_builder struct {
@@ -301,15 +301,15 @@ func (b0 CreateSecretRequest_builder) Build() *CreateSecretRequest {
 	m0 := &CreateSecretRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Type = b.Type
-	x.Data = b.Data
-	x.Metadata = b.Metadata
+	x.xxx_hidden_Type = b.Type
+	x.xxx_hidden_Data = b.Data
+	x.xxx_hidden_Metadata = b.Metadata
 	return m0
 }
 
 type CreateSecretResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id int64                  `protobuf:"varint,1,opt,name=id,proto3"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -341,13 +341,13 @@ func (x *CreateSecretResponse) ProtoReflect() protoreflect.Message {
 
 func (x *CreateSecretResponse) GetId() int64 {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return 0
 }
 
 func (x *CreateSecretResponse) SetId(v int64) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 type CreateSecretResponse_builder struct {
@@ -360,13 +360,13 @@ func (b0 CreateSecretResponse_builder) Build() *CreateSecretResponse {
 	m0 := &CreateSecretResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
+	x.xxx_hidden_Id = b.Id
 	return m0
 }
 
 type GetSecretRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id int64                  `protobuf:"varint,1,opt,name=id,proto3"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -398,13 +398,13 @@ func (x *GetSecretRequest) ProtoReflect() protoreflect.Message {
 
 func (x *GetSecretRequest) GetId() int64 {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return 0
 }
 
 func (x *GetSecretRequest) SetId(v int64) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 type GetSecretRequest_builder struct {
@@ -417,15 +417,15 @@ func (b0 GetSecretRequest_builder) Build() *GetSecretRequest {
 	m0 := &GetSecretRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
+	x.xxx_hidden_Id = b.Id
 	return m0
 }
 
 type GetSecretResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Secret        *Secret                `protobuf:"bytes,1,opt,name=secret,proto3" json:"secret,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Secret *Secret                `protobuf:"bytes,1,opt,name=secret,proto3"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *GetSecretResponse) Reset() {
@@ -455,24 +455,24 @@ func (x *GetSecretResponse) ProtoReflect() protoreflect.Message {
 
 func (x *GetSecretResponse) GetSecret() *Secret {
 	if x != nil {
-		return x.Secret
+		return x.xxx_hidden_Secret
 	}
 	return nil
 }
 
 func (x *GetSecretResponse) SetSecret(v *Secret) {
-	x.Secret = v
+	x.xxx_hidden_Secret = v
 }
 
 func (x *GetSecretResponse) HasSecret() bool {
 	if x == nil {
 		return false
 	}
-	return x.Secret != nil
+	return x.xxx_hidden_Secret != nil
 }
 
 func (x *GetSecretResponse) ClearSecret() {
-	x.Secret = nil
+	x.xxx_hidden_Secret = nil
 }
 
 type GetSecretResponse_builder struct {
@@ -485,12 +485,12 @@ func (b0 GetSecretResponse_builder) Build() *GetSecretResponse {
 	m0 := &GetSecretResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Secret = b.Secret
+	x.xxx_hidden_Secret = b.Secret
 	return m0
 }
 
 type ListSecretsRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -533,10 +533,10 @@ func (b0 ListSecretsRequest_builder) Build() *ListSecretsRequest {
 }
 
 type ListSecretsResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Secrets       []*Secret              `protobuf:"bytes,1,rep,name=secrets,proto3" json:"secrets,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Secrets *[]*Secret             `protobuf:"bytes,1,rep,name=secrets,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ListSecretsResponse) Reset() {
@@ -566,13 +566,15 @@ func (x *ListSecretsResponse) ProtoReflect() protoreflect.Message {
 
 func (x *ListSecretsResponse) GetSecrets() []*Secret {
 	if x != nil {
-		return x.Secrets
+		if x.xxx_hidden_Secrets != nil {
+			return *x.xxx_hidden_Secrets
+		}
 	}
 	return nil
 }
 
 func (x *ListSecretsResponse) SetSecrets(v []*Secret) {
-	x.Secrets = v
+	x.xxx_hidden_Secrets = &v
 }
 
 type ListSecretsResponse_builder struct {
@@ -585,18 +587,18 @@ func (b0 ListSecretsResponse_builder) Build() *ListSecretsResponse {
 	m0 := &ListSecretsResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Secrets = b.Secrets
+	x.xxx_hidden_Secrets = &b.Secrets
 	return m0
 }
 
 type UpdateSecretRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Metadata      string                 `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"` // версия, которую клиент считает текущей
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id       int64                  `protobuf:"varint,1,opt,name=id,proto3"`
+	xxx_hidden_Data     []byte                 `protobuf:"bytes,2,opt,name=data,proto3"`
+	xxx_hidden_Metadata string                 `protobuf:"bytes,3,opt,name=metadata,proto3"`
+	xxx_hidden_Version  int32                  `protobuf:"varint,4,opt,name=version,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *UpdateSecretRequest) Reset() {
@@ -626,49 +628,49 @@ func (x *UpdateSecretRequest) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateSecretRequest) GetId() int64 {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return 0
 }
 
 func (x *UpdateSecretRequest) GetData() []byte {
 	if x != nil {
-		return x.Data
+		return x.xxx_hidden_Data
 	}
 	return nil
 }
 
 func (x *UpdateSecretRequest) GetMetadata() string {
 	if x != nil {
-		return x.Metadata
+		return x.xxx_hidden_Metadata
 	}
 	return ""
 }
 
 func (x *UpdateSecretRequest) GetVersion() int32 {
 	if x != nil {
-		return x.Version
+		return x.xxx_hidden_Version
 	}
 	return 0
 }
 
 func (x *UpdateSecretRequest) SetId(v int64) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 func (x *UpdateSecretRequest) SetData(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.Data = v
+	x.xxx_hidden_Data = v
 }
 
 func (x *UpdateSecretRequest) SetMetadata(v string) {
-	x.Metadata = v
+	x.xxx_hidden_Metadata = v
 }
 
 func (x *UpdateSecretRequest) SetVersion(v int32) {
-	x.Version = v
+	x.xxx_hidden_Version = v
 }
 
 type UpdateSecretRequest_builder struct {
@@ -684,18 +686,18 @@ func (b0 UpdateSecretRequest_builder) Build() *UpdateSecretRequest {
 	m0 := &UpdateSecretRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
-	x.Data = b.Data
-	x.Metadata = b.Metadata
-	x.Version = b.Version
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Data = b.Data
+	x.xxx_hidden_Metadata = b.Metadata
+	x.xxx_hidden_Version = b.Version
 	return m0
 }
 
 type UpdateSecretResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Version       int32                  `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"` // новая версия после обновления
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Version int32                  `protobuf:"varint,1,opt,name=version,proto3"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UpdateSecretResponse) Reset() {
@@ -725,13 +727,13 @@ func (x *UpdateSecretResponse) ProtoReflect() protoreflect.Message {
 
 func (x *UpdateSecretResponse) GetVersion() int32 {
 	if x != nil {
-		return x.Version
+		return x.xxx_hidden_Version
 	}
 	return 0
 }
 
 func (x *UpdateSecretResponse) SetVersion(v int32) {
-	x.Version = v
+	x.xxx_hidden_Version = v
 }
 
 type UpdateSecretResponse_builder struct {
@@ -744,13 +746,13 @@ func (b0 UpdateSecretResponse_builder) Build() *UpdateSecretResponse {
 	m0 := &UpdateSecretResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Version = b.Version
+	x.xxx_hidden_Version = b.Version
 	return m0
 }
 
 type DeleteSecretRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id int64                  `protobuf:"varint,1,opt,name=id,proto3"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -782,13 +784,13 @@ func (x *DeleteSecretRequest) ProtoReflect() protoreflect.Message {
 
 func (x *DeleteSecretRequest) GetId() int64 {
 	if x != nil {
-		return x.Id
+		return x.xxx_hidden_Id
 	}
 	return 0
 }
 
 func (x *DeleteSecretRequest) SetId(v int64) {
-	x.Id = v
+	x.xxx_hidden_Id = v
 }
 
 type DeleteSecretRequest_builder struct {
@@ -801,12 +803,12 @@ func (b0 DeleteSecretRequest_builder) Build() *DeleteSecretRequest {
 	m0 := &DeleteSecretRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Id = b.Id
+	x.xxx_hidden_Id = b.Id
 	return m0
 }
 
 type DeleteSecretResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

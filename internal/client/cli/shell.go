@@ -30,9 +30,10 @@ type state struct {
 var errExit = errors.New("exit")
 
 // Run запускает интерактивный режим GophKeeper: подключается к серверу
-// serverAddr и входит в цикл чтения команд из stdin.
-func Run(serverAddr string) error {
-	conn, err := grpcclient.Dial(serverAddr)
+// serverAddr по TLS (доверяя сертификату из caCertFile) и входит в цикл
+// чтения команд из stdin.
+func Run(serverAddr, caCertFile string) error {
+	conn, err := grpcclient.Dial(serverAddr, caCertFile)
 	if err != nil {
 		return err
 	}

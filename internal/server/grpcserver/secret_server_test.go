@@ -56,8 +56,26 @@ func authedCtx(userID int64) context.Context {
 	return context.WithValue(context.Background(), ctxKeyUserID{}, userID)
 }
 
+func newGetSecretRequest(id int64) *secretv1.GetSecretRequest {
+	req := &secretv1.GetSecretRequest{}
+	req.SetId(id)
+	return req
+}
+
+func newUpdateSecretRequest(id int64) *secretv1.UpdateSecretRequest {
+	req := &secretv1.UpdateSecretRequest{}
+	req.SetId(id)
+	return req
+}
+
+func newDeleteSecretRequest(id int64) *secretv1.DeleteSecretRequest {
+	req := &secretv1.DeleteSecretRequest{}
+	req.SetId(id)
+	return req
+}
+
 func TestSecretServer_CreateSecret_Unauthenticated(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{})
+	srv := NewSecretServer(&fakeSecretService{}, testLogger)
 
 	_, err := srv.CreateSecret(context.Background(), &secretv1.CreateSecretRequest{})
 	require.Error(t, err)
@@ -65,7 +83,7 @@ func TestSecretServer_CreateSecret_Unauthenticated(t *testing.T) {
 }
 
 func TestSecretServer_CreateSecret_Success(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{createSecret: &model.Secret{ID: 5}})
+	srv := NewSecretServer(&fakeSecretService{createSecret: &model.Secret{ID: 5}}, testLogger)
 
 	resp, err := srv.CreateSecret(authedCtx(1), &secretv1.CreateSecretRequest{})
 	require.NoError(t, err)
@@ -73,7 +91,7 @@ func TestSecretServer_CreateSecret_Success(t *testing.T) {
 }
 
 func TestSecretServer_CreateSecret_InvalidType(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{createErr: service.ErrInvalidSecretType})
+	srv := NewSecretServer(&fakeSecretService{createErr: service.ErrInvalidSecretType}, testLogger)
 
 	_, err := srv.CreateSecret(authedCtx(1), &secretv1.CreateSecretRequest{})
 	require.Error(t, err)
@@ -81,7 +99,7 @@ func TestSecretServer_CreateSecret_InvalidType(t *testing.T) {
 }
 
 func TestSecretServer_CreateSecret_InternalError(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{createErr: errors.New("db is down")})
+	srv := NewSecretServer(&fakeSecretService{createErr: errors.New("db is down")}, testLogger)
 
 	_, err := srv.CreateSecret(authedCtx(1), &secretv1.CreateSecretRequest{})
 	require.Error(t, err)
@@ -89,31 +107,31 @@ func TestSecretServer_CreateSecret_InternalError(t *testing.T) {
 }
 
 func TestSecretServer_GetSecret_Unauthenticated(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{})
+	srv := NewSecretServer(&fakeSecretService{}, testLogger)
 
-	_, err := srv.GetSecret(context.Background(), &secretv1.GetSecretRequest{Id: 1})
+	_, err := srv.GetSecret(context.Background(), newGetSecretRequest(1))
 	require.Error(t, err)
 	assert.Equal(t, codes.Unauthenticated, status.Code(err))
 }
 
 func TestSecretServer_GetSecret_NotFound(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{getErr: storage.ErrSecretNotFound})
+	srv := NewSecretServer(&fakeSecretService{getErr: storage.ErrSecretNotFound}, testLogger)
 
-	_, err := srv.GetSecret(authedCtx(1), &secretv1.GetSecretRequest{Id: 1})
+	_, err := srv.GetSecret(authedCtx(1), newGetSecretRequest(1))
 	require.Error(t, err)
 	assert.Equal(t, codes.NotFound, status.Code(err))
 }
 
 func TestSecretServer_GetSecret_Success(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{getSecret: &model.Secret{ID: 1, Metadata: "site.com"}})
+	srv := NewSecretServer(&fakeSecretService{getSecret: &model.Secret{ID: 1, Metadata: "site.com"}}, testLogger)
 
-	resp, err := srv.GetSecret(authedCtx(1), &secretv1.GetSecretRequest{Id: 1})
+	resp, err := srv.GetSecret(authedCtx(1), newGetSecretRequest(1))
 	require.NoError(t, err)
 	assert.Equal(t, "site.com", resp.GetSecret().GetMetadata())
 }
 
 func TestSecretServer_ListSecrets_Success(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{listSecrets: []*model.Secret{{ID: 1}, {ID: 2}}})
+	srv := NewSecretServer(&fakeSecretService{listSecrets: []*model.Secret{{ID: 1}, {ID: 2}}}, testLogger)
 
 	resp, err := srv.ListSecrets(authedCtx(1), &secretv1.ListSecretsRequest{})
 	require.NoError(t, err)
@@ -121,7 +139,7 @@ func TestSecretServer_ListSecrets_Success(t *testing.T) {
 }
 
 func TestSecretServer_ListSecrets_InternalError(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{listErr: errors.New("db is down")})
+	srv := NewSecretServer(&fakeSecretService{listErr: errors.New("db is down")}, testLogger)
 
 	_, err := srv.ListSecrets(authedCtx(1), &secretv1.ListSecretsRequest{})
 	require.Error(t, err)
@@ -129,32 +147,32 @@ func TestSecretServer_ListSecrets_InternalError(t *testing.T) {
 }
 
 func TestSecretServer_UpdateSecret_VersionConflict(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{updateErr: storage.ErrVersionConflict})
+	srv := NewSecretServer(&fakeSecretService{updateErr: storage.ErrVersionConflict}, testLogger)
 
-	_, err := srv.UpdateSecret(authedCtx(1), &secretv1.UpdateSecretRequest{Id: 1})
+	_, err := srv.UpdateSecret(authedCtx(1), newUpdateSecretRequest(1))
 	require.Error(t, err)
 	assert.Equal(t, codes.Aborted, status.Code(err))
 }
 
 func TestSecretServer_UpdateSecret_Success(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{updateVersion: 3})
+	srv := NewSecretServer(&fakeSecretService{updateVersion: 3}, testLogger)
 
-	resp, err := srv.UpdateSecret(authedCtx(1), &secretv1.UpdateSecretRequest{Id: 1})
+	resp, err := srv.UpdateSecret(authedCtx(1), newUpdateSecretRequest(1))
 	require.NoError(t, err)
 	assert.Equal(t, int32(3), resp.GetVersion())
 }
 
 func TestSecretServer_DeleteSecret_Success(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{})
+	srv := NewSecretServer(&fakeSecretService{}, testLogger)
 
-	_, err := srv.DeleteSecret(authedCtx(1), &secretv1.DeleteSecretRequest{Id: 1})
+	_, err := srv.DeleteSecret(authedCtx(1), newDeleteSecretRequest(1))
 	assert.NoError(t, err)
 }
 
 func TestSecretServer_DeleteSecret_NotFound(t *testing.T) {
-	srv := NewSecretServer(&fakeSecretService{deleteErr: storage.ErrSecretNotFound})
+	srv := NewSecretServer(&fakeSecretService{deleteErr: storage.ErrSecretNotFound}, testLogger)
 
-	_, err := srv.DeleteSecret(authedCtx(1), &secretv1.DeleteSecretRequest{Id: 1})
+	_, err := srv.DeleteSecret(authedCtx(1), newDeleteSecretRequest(1))
 	require.Error(t, err)
 	assert.Equal(t, codes.NotFound, status.Code(err))
 }

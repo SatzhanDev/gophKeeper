@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -102,11 +101,14 @@ func (r *SecretRepo) Update(ctx context.Context, userID int64, s *model.Secret) 
 
 // Delete реализует storage.SecretRepository. Это soft delete — строка
 // остаётся в таблице с проставленным deleted_at, чтобы удаление можно было
-// синхронизировать на другие клиенты пользователя
+// синхронизировать на другие клиенты пользователя. Время берётся через
+// now() прямо в SQL (тот же источник времени, что и у created_at/updated_at),
+// а не через time.Now() в Go — чтобы не зависеть от рассинхронизации часов
+// между приложением и базой.
 func (r *SecretRepo) Delete(ctx context.Context, userID, id int64) error {
 	tag, err := r.pool.Exec(ctx,
-		`UPDATE secrets SET deleted_at = $1 WHERE id = $2 AND user_id = $3 AND deleted_at IS NULL`,
-		time.Now(), id, userID,
+		`UPDATE secrets SET deleted_at = now() WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL`,
+		id, userID,
 	)
 	if err != nil {
 		return err

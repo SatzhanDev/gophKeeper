@@ -46,6 +46,42 @@ func (f *fakeSecretClient) DeleteSecret(context.Context, *secretv1.DeleteSecretR
 	return f.deleteResp, f.deleteErr
 }
 
+// Небольшие конструкторы поверх Opaque API (сеттеры вместо struct literal) —
+// переиспользуются в нескольких тестах ниже.
+
+func newSecret(id int64, metadata string, data []byte, version int32) *secretv1.Secret {
+	s := &secretv1.Secret{}
+	s.SetId(id)
+	s.SetMetadata(metadata)
+	s.SetData(data)
+	s.SetVersion(version)
+	return s
+}
+
+func newGetSecretResponse(secret *secretv1.Secret) *secretv1.GetSecretResponse {
+	resp := &secretv1.GetSecretResponse{}
+	resp.SetSecret(secret)
+	return resp
+}
+
+func newListSecretsResponse(secrets ...*secretv1.Secret) *secretv1.ListSecretsResponse {
+	resp := &secretv1.ListSecretsResponse{}
+	resp.SetSecrets(secrets)
+	return resp
+}
+
+func newCreateSecretResponse(id int64) *secretv1.CreateSecretResponse {
+	resp := &secretv1.CreateSecretResponse{}
+	resp.SetId(id)
+	return resp
+}
+
+func newUpdateSecretResponse(version int32) *secretv1.UpdateSecretResponse {
+	resp := &secretv1.UpdateSecretResponse{}
+	resp.SetVersion(version)
+	return resp
+}
+
 func TestParseSecretType(t *testing.T) {
 	tests := []struct {
 		name string
@@ -74,10 +110,8 @@ func TestParseSecretType(t *testing.T) {
 
 func TestCmdList_Success(t *testing.T) {
 	st := &state{
-		token: "tok",
-		secretClient: &fakeSecretClient{listResp: &secretv1.ListSecretsResponse{
-			Secrets: []*secretv1.Secret{{Id: 1, Metadata: "site.com"}},
-		}},
+		token:        "tok",
+		secretClient: &fakeSecretClient{listResp: newListSecretsResponse(newSecret(1, "site.com", nil, 0))},
 	}
 	assert.NoError(t, cmdList(st))
 }
@@ -93,11 +127,9 @@ func TestCmdGet_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	st := &state{
-		token: "tok",
-		dek:   dek,
-		secretClient: &fakeSecretClient{getResp: &secretv1.GetSecretResponse{
-			Secret: &secretv1.Secret{Id: 1, Data: ciphertext},
-		}},
+		token:        "tok",
+		dek:          dek,
+		secretClient: &fakeSecretClient{getResp: newGetSecretResponse(newSecret(1, "", ciphertext, 0))},
 	}
 
 	assert.NoError(t, cmdGet(st, []string{"1"}))
@@ -127,11 +159,9 @@ func TestCmdGet_DecryptFailsWithWrongKey(t *testing.T) {
 	wrongDEK[0] = 0xFF
 
 	st := &state{
-		token: "tok",
-		dek:   wrongDEK,
-		secretClient: &fakeSecretClient{getResp: &secretv1.GetSecretResponse{
-			Secret: &secretv1.Secret{Id: 1, Data: ciphertext},
-		}},
+		token:        "tok",
+		dek:          wrongDEK,
+		secretClient: &fakeSecretClient{getResp: newGetSecretResponse(newSecret(1, "", ciphertext, 0))},
 	}
 
 	assert.Error(t, cmdGet(st, []string{"1"}))
@@ -141,7 +171,7 @@ func TestCmdAdd_Success(t *testing.T) {
 	st := &state{
 		token:        "tok",
 		dek:          make([]byte, 32),
-		secretClient: &fakeSecretClient{createResp: &secretv1.CreateSecretResponse{Id: 5}},
+		secretClient: &fakeSecretClient{createResp: newCreateSecretResponse(5)},
 	}
 
 	assert.NoError(t, cmdAdd(st, []string{"login", "github.com", "login=ivan;password=secret"}))
@@ -171,8 +201,8 @@ func TestCmdUpdate_Success(t *testing.T) {
 		token: "tok",
 		dek:   make([]byte, 32),
 		secretClient: &fakeSecretClient{
-			getResp:    &secretv1.GetSecretResponse{Secret: &secretv1.Secret{Id: 1, Version: 3}},
-			updateResp: &secretv1.UpdateSecretResponse{Version: 4},
+			getResp:    newGetSecretResponse(newSecret(1, "", nil, 3)),
+			updateResp: newUpdateSecretResponse(4),
 		},
 	}
 
@@ -199,7 +229,7 @@ func TestCmdUpdate_VersionConflict(t *testing.T) {
 		token: "tok",
 		dek:   make([]byte, 32),
 		secretClient: &fakeSecretClient{
-			getResp:   &secretv1.GetSecretResponse{Secret: &secretv1.Secret{Id: 1, Version: 3}},
+			getResp:   newGetSecretResponse(newSecret(1, "", nil, 3)),
 			updateErr: status.Error(codes.Aborted, "version conflict"),
 		},
 	}
