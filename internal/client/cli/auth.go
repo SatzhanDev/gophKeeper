@@ -39,15 +39,22 @@ func cmdRegister(st *state, args []string) error {
 		return err
 	}
 
-	resp, err := st.authClient.Register(context.Background(), &authv1.RegisterRequest{
-		Login:       login,
-		Password:    password,
-		KdfSalt:     salt,
-		KdfTime:     params.Time,
-		KdfMemoryKb: params.MemoryKB,
-		KdfThreads:  uint32(params.Threads),
-		WrappedDek:  wrappedDEK,
-	})
+	// Сообщение собирается через сеттеры (Opaque API, режим Hybrid — см.
+	// Makefile), а не через struct literal вида &authv1.RegisterRequest{Login: login}.
+	// Поля пока формально ещё экспортируемые (Hybrid — переходная ступень
+	// перед полным Opaque, нужна для совместимости с protoc-gen-grpc-gateway),
+	// но напрямую их использовать больше не следует — цель миграции
+	// (полный Opaque) сделает прямой доступ невозможным.
+	req := &authv1.RegisterRequest{}
+	req.SetLogin(login)
+	req.SetPassword(password)
+	req.SetKdfSalt(salt)
+	req.SetKdfTime(params.Time)
+	req.SetKdfMemoryKb(params.MemoryKB)
+	req.SetKdfThreads(uint32(params.Threads))
+	req.SetWrappedDek(wrappedDEK)
+
+	resp, err := st.authClient.Register(context.Background(), req)
 	if err != nil {
 		return err
 	}
@@ -72,10 +79,11 @@ func cmdLogin(st *state, args []string) error {
 		return err
 	}
 
-	resp, err := st.authClient.Login(context.Background(), &authv1.LoginRequest{
-		Login:    login,
-		Password: password,
-	})
+	req := &authv1.LoginRequest{}
+	req.SetLogin(login)
+	req.SetPassword(password)
+
+	resp, err := st.authClient.Login(context.Background(), req)
 	if err != nil {
 		return err
 	}

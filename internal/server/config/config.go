@@ -12,6 +12,8 @@ import (
 const defaultJWTTTL = 24 * time.Hour
 const defaultGRPCPort = "50051"
 const defaultHTTPPort = "8080"
+const defaultTLSCertFile = "certs/server.crt"
+const defaultTLSKeyFile = "certs/server.key"
 
 // Config — конфигурация сервера GophKeeper.
 type Config struct {
@@ -21,6 +23,10 @@ type Config struct {
 	GRPCPort    string
 	// HTTPPort — порт REST/Swagger-шлюза (grpc-gateway) поверх gRPC API.
 	HTTPPort string
+	// TLSCertFile, TLSKeyFile — путь к самоподписанному TLS-сертификату
+	// и приватному ключу gRPC-сервера. Генерируются командой `make certs`.
+	TLSCertFile string
+	TLSKeyFile  string
 }
 
 // Load читает конфигурацию из аргументов командной строки args (обычно
@@ -42,19 +48,29 @@ func Load(args []string) (*Config, error) {
 	fs.DurationVar(&cfg.JWTTTL, "t", 0, "JWT TTL, e.g. 24h (env: JWT_TTL)")
 	fs.StringVar(&cfg.GRPCPort, "gp", "", "GRPC port (env: GRPC_PORT)")
 	fs.StringVar(&cfg.HTTPPort, "hp", "", "HTTP port for REST/Swagger gateway (env: HTTP_PORT)")
+	fs.StringVar(&cfg.TLSCertFile, "tls-cert", "", "path to TLS certificate (env: TLS_CERT_FILE)")
+	fs.StringVar(&cfg.TLSKeyFile, "tls-key", "", "path to TLS private key (env: TLS_KEY_FILE)")
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
 
-	// Шаг 2: если флаг пуст — пробуем env
+	// Шаг 2: если флаг пуст — пробуем env. os.LookupEnv (а не os.Getenv)
+	// используется намеренно: он возвращает второе значение ok, которое
+	// явно отличает "переменная не задана" от "задана пустой строкой" —
+	// os.Getenv в обоих случаях вернул бы "", и эти случаи было бы
+	// невозможно различить.
 	if cfg.DatabaseDSN == "" {
-		cfg.DatabaseDSN = os.Getenv("DATABASE_DSN")
+		if v, ok := os.LookupEnv("DATABASE_DSN"); ok {
+			cfg.DatabaseDSN = v
+		}
 	}
 	if cfg.JWTSecret == "" {
-		cfg.JWTSecret = os.Getenv("JWT_SECRET")
+		if v, ok := os.LookupEnv("JWT_SECRET"); ok {
+			cfg.JWTSecret = v
+		}
 	}
 	if cfg.JWTTTL == 0 {
-		if v := os.Getenv("JWT_TTL"); v != "" {
+		if v, ok := os.LookupEnv("JWT_TTL"); ok && v != "" {
 			d, err := time.ParseDuration(v)
 			if err != nil {
 				return nil, errors.New("invalid JWT_TTL: " + err.Error())
@@ -63,10 +79,24 @@ func Load(args []string) (*Config, error) {
 		}
 	}
 	if cfg.GRPCPort == "" {
-		cfg.GRPCPort = os.Getenv("GRPC_PORT")
+		if v, ok := os.LookupEnv("GRPC_PORT"); ok {
+			cfg.GRPCPort = v
+		}
 	}
 	if cfg.HTTPPort == "" {
-		cfg.HTTPPort = os.Getenv("HTTP_PORT")
+		if v, ok := os.LookupEnv("HTTP_PORT"); ok {
+			cfg.HTTPPort = v
+		}
+	}
+	if cfg.TLSCertFile == "" {
+		if v, ok := os.LookupEnv("TLS_CERT_FILE"); ok {
+			cfg.TLSCertFile = v
+		}
+	}
+	if cfg.TLSKeyFile == "" {
+		if v, ok := os.LookupEnv("TLS_KEY_FILE"); ok {
+			cfg.TLSKeyFile = v
+		}
 	}
 
 	// Шаг 3: дефолты
@@ -84,6 +114,12 @@ func Load(args []string) (*Config, error) {
 	}
 	if cfg.HTTPPort == "" {
 		cfg.HTTPPort = defaultHTTPPort
+	}
+	if cfg.TLSCertFile == "" {
+		cfg.TLSCertFile = defaultTLSCertFile
+	}
+	if cfg.TLSKeyFile == "" {
+		cfg.TLSKeyFile = defaultTLSKeyFile
 	}
 
 	return cfg, nil

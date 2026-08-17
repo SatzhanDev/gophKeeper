@@ -12,6 +12,7 @@ import (
 func clearEnv(t *testing.T) {
 	t.Helper()
 	t.Setenv("GOPHKEEPER_SERVER", "")
+	t.Setenv("TLS_CA_CERT_FILE", "")
 }
 
 func TestLoad_Default(t *testing.T) {

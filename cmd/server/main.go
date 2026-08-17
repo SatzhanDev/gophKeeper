@@ -18,10 +18,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	authv1 "github.com/SatzhanDev/gophKeeper/api/proto/auth/v1"
 	secretv1 "github.com/SatzhanDev/gophKeeper/api/proto/secret/v1"
+	"github.com/SatzhanDev/gophKeeper/internal/pkg/tlsutil"
 	"github.com/SatzhanDev/gophKeeper/internal/server/auth"
 	"github.com/SatzhanDev/gophKeeper/internal/server/config"
 	"github.com/SatzhanDev/gophKeeper/internal/server/gateway"
@@ -34,6 +34,11 @@ import (
 // HTTP-запросов при остановке сервера, прежде чем закрыть соединение
 // принудительно.
 const shutdownTimeout = 10 * time.Second
+
+// tlsServerName — имя, под которым выпущен самоподписанный сертификат
+// сервера (см. `make certs`, CN=localhost) — используется внутренним
+// подключением REST-шлюза к gRPC-серверу для проверки идентичности.
+const tlsServerName = "localhost"
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -49,6 +54,15 @@ func main() {
 	cfg, err := config.Load(os.Args[1:])
 	if err != nil {
 		logger.Error("failed to load config", "err", err)
+		os.Exit(1)
+	}
+
+	// Миграции накатываются программно при каждом старте — не нужно
+	// помнить о ручном `make migrate-up` перед запуском. golang-migrate
+	// сам знает, какие миграции уже применены, и просто ничего не делает,
+	// если новых нет.
+	if err := applyMigrations(cfg.DatabaseDSN); err != nil {
+		logger.Error("failed to apply migrations", "err", err)
 		os.Exit(1)
 	}
 
@@ -68,6 +82,18 @@ func main() {
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTTTL)
 	authService := service.NewAuthService(users, jwtManager)
 
+	// TLS обязателен для gRPC-сервера — без него JWT-токены, мастер-пароль
+	// при регистрации/логине и зашифрованные данные передавались бы по
+	// сети в открытом виде поверх TCP. Сертификат самоподписанный
+	// (`make certs`), поэтому и внутреннее подключение шлюза (ниже), и
+	// клиент должны явно доверять именно этому файлу сертификата — обычный
+	// системный пул CA его не примет.
+	serverCreds, err := tlsutil.ServerCredentials(cfg.TLSCertFile, cfg.TLSKeyFile)
+	if err != nil {
+		logger.Error("failed to load TLS server credentials", "err", err)
+		os.Exit(1)
+	}
+
 	lis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {
 		logger.Error("failed to listen", "err", err)
@@ -75,22 +101,27 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(
+		grpc.Creds(serverCreds),
 		grpc.UnaryInterceptor(grpcserver.AuthInterceptor(jwtManager)),
 	)
-	authv1.RegisterAuthServiceServer(grpcServer, grpcserver.NewAuthServer(authService))
+	authv1.RegisterAuthServiceServer(grpcServer, grpcserver.NewAuthServer(authService, logger.With("component", "grpcserver.AuthServer")))
 
 	secrets := postgres.NewSecretRepo(pool)
 	secretService := service.NewSecretService(secrets)
-	secretv1.RegisterSecretServiceServer(grpcServer, grpcserver.NewSecretServer(secretService))
+	secretv1.RegisterSecretServiceServer(grpcServer, grpcserver.NewSecretServer(secretService, logger.With("component", "grpcserver.SecretServer")))
 
-	// TODO(TLS): сейчас и gRPC-сервер (выше, grpc.NewServer без
-	// credentials), и это внутреннее подключение шлюза к нему — оба без
-	// TLS. Когда сервер переведут на TLS, credentials здесь нужно поменять
-	// синхронно на TLS-клиентские, иначе шлюз продолжит стучаться к
-	// серверу в открытом виде, даже если снаружи он уже будет HTTPS.
-	grpcDialOpts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	// Внутреннее подключение шлюза к gRPC-серверу использует тот же самый
+	// сертификат, что и сам сервер (доверяем ему как единственному
+	// известному "CA") — оба соединения (внешнее клиент→сервер и
+	// внутреннее шлюз→сервер) защищены одинаково, они не могут разойтись,
+	// потому что оба берут credentials из одной и той же пары файлов.
+	gatewayCreds, err := tlsutil.ClientCredentials(cfg.TLSCertFile, tlsServerName)
+	if err != nil {
+		logger.Error("failed to load TLS gateway credentials", "err", err)
+		os.Exit(1)
+	}
 
-	gw, err := gateway.New(ctx, "localhost:"+cfg.GRPCPort, grpcDialOpts...)
+	gw, err := gateway.New(ctx, "localhost:"+cfg.GRPCPort, grpc.WithTransportCredentials(gatewayCreds))
 	if err != nil {
 		logger.Error("failed to create gateway", "err", err)
 		os.Exit(1)

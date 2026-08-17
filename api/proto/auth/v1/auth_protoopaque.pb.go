@@ -4,7 +4,7 @@
 // 	protoc        v7.35.1
 // source: api/proto/auth/v1/auth.proto
 
-//go:build !protoopaque
+//go:build protoopaque
 
 package authv1
 
@@ -24,16 +24,16 @@ const (
 )
 
 type RegisterRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	KdfSalt       []byte                 `protobuf:"bytes,3,opt,name=kdf_salt,json=kdfSalt,proto3" json:"kdf_salt,omitempty"`
-	KdfTime       uint32                 `protobuf:"varint,4,opt,name=kdf_time,json=kdfTime,proto3" json:"kdf_time,omitempty"`
-	KdfMemoryKb   uint32                 `protobuf:"varint,5,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3" json:"kdf_memory_kb,omitempty"`
-	KdfThreads    uint32                 `protobuf:"varint,6,opt,name=kdf_threads,json=kdfThreads,proto3" json:"kdf_threads,omitempty"`
-	WrappedDek    []byte                 `protobuf:"bytes,7,opt,name=wrapped_dek,json=wrappedDek,proto3" json:"wrapped_dek,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Login       string                 `protobuf:"bytes,1,opt,name=login,proto3"`
+	xxx_hidden_Password    string                 `protobuf:"bytes,2,opt,name=password,proto3"`
+	xxx_hidden_KdfSalt     []byte                 `protobuf:"bytes,3,opt,name=kdf_salt,json=kdfSalt,proto3"`
+	xxx_hidden_KdfTime     uint32                 `protobuf:"varint,4,opt,name=kdf_time,json=kdfTime,proto3"`
+	xxx_hidden_KdfMemoryKb uint32                 `protobuf:"varint,5,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3"`
+	xxx_hidden_KdfThreads  uint32                 `protobuf:"varint,6,opt,name=kdf_threads,json=kdfThreads,proto3"`
+	xxx_hidden_WrappedDek  []byte                 `protobuf:"bytes,7,opt,name=wrapped_dek,json=wrappedDek,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *RegisterRequest) Reset() {
@@ -63,85 +63,85 @@ func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 
 func (x *RegisterRequest) GetLogin() string {
 	if x != nil {
-		return x.Login
+		return x.xxx_hidden_Login
 	}
 	return ""
 }
 
 func (x *RegisterRequest) GetPassword() string {
 	if x != nil {
-		return x.Password
+		return x.xxx_hidden_Password
 	}
 	return ""
 }
 
 func (x *RegisterRequest) GetKdfSalt() []byte {
 	if x != nil {
-		return x.KdfSalt
+		return x.xxx_hidden_KdfSalt
 	}
 	return nil
 }
 
 func (x *RegisterRequest) GetKdfTime() uint32 {
 	if x != nil {
-		return x.KdfTime
+		return x.xxx_hidden_KdfTime
 	}
 	return 0
 }
 
 func (x *RegisterRequest) GetKdfMemoryKb() uint32 {
 	if x != nil {
-		return x.KdfMemoryKb
+		return x.xxx_hidden_KdfMemoryKb
 	}
 	return 0
 }
 
 func (x *RegisterRequest) GetKdfThreads() uint32 {
 	if x != nil {
-		return x.KdfThreads
+		return x.xxx_hidden_KdfThreads
 	}
 	return 0
 }
 
 func (x *RegisterRequest) GetWrappedDek() []byte {
 	if x != nil {
-		return x.WrappedDek
+		return x.xxx_hidden_WrappedDek
 	}
 	return nil
 }
 
 func (x *RegisterRequest) SetLogin(v string) {
-	x.Login = v
+	x.xxx_hidden_Login = v
 }
 
 func (x *RegisterRequest) SetPassword(v string) {
-	x.Password = v
+	x.xxx_hidden_Password = v
 }
 
 func (x *RegisterRequest) SetKdfSalt(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.KdfSalt = v
+	x.xxx_hidden_KdfSalt = v
 }
 
 func (x *RegisterRequest) SetKdfTime(v uint32) {
-	x.KdfTime = v
+	x.xxx_hidden_KdfTime = v
 }
 
 func (x *RegisterRequest) SetKdfMemoryKb(v uint32) {
-	x.KdfMemoryKb = v
+	x.xxx_hidden_KdfMemoryKb = v
 }
 
 func (x *RegisterRequest) SetKdfThreads(v uint32) {
-	x.KdfThreads = v
+	x.xxx_hidden_KdfThreads = v
 }
 
 func (x *RegisterRequest) SetWrappedDek(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.WrappedDek = v
+	x.xxx_hidden_WrappedDek = v
 }
 
 type RegisterRequest_builder struct {
@@ -160,21 +160,21 @@ func (b0 RegisterRequest_builder) Build() *RegisterRequest {
 	m0 := &RegisterRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Login = b.Login
-	x.Password = b.Password
-	x.KdfSalt = b.KdfSalt
-	x.KdfTime = b.KdfTime
-	x.KdfMemoryKb = b.KdfMemoryKb
-	x.KdfThreads = b.KdfThreads
-	x.WrappedDek = b.WrappedDek
+	x.xxx_hidden_Login = b.Login
+	x.xxx_hidden_Password = b.Password
+	x.xxx_hidden_KdfSalt = b.KdfSalt
+	x.xxx_hidden_KdfTime = b.KdfTime
+	x.xxx_hidden_KdfMemoryKb = b.KdfMemoryKb
+	x.xxx_hidden_KdfThreads = b.KdfThreads
+	x.xxx_hidden_WrappedDek = b.WrappedDek
 	return m0
 }
 
 type RegisterResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Token string                 `protobuf:"bytes,1,opt,name=token,proto3"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *RegisterResponse) Reset() {
@@ -204,13 +204,13 @@ func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
 
 func (x *RegisterResponse) GetToken() string {
 	if x != nil {
-		return x.Token
+		return x.xxx_hidden_Token
 	}
 	return ""
 }
 
 func (x *RegisterResponse) SetToken(v string) {
-	x.Token = v
+	x.xxx_hidden_Token = v
 }
 
 type RegisterResponse_builder struct {
@@ -223,16 +223,16 @@ func (b0 RegisterResponse_builder) Build() *RegisterResponse {
 	m0 := &RegisterResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Token = b.Token
+	x.xxx_hidden_Token = b.Token
 	return m0
 }
 
 type LoginRequest struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Login         string                 `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Login    string                 `protobuf:"bytes,1,opt,name=login,proto3"`
+	xxx_hidden_Password string                 `protobuf:"bytes,2,opt,name=password,proto3"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *LoginRequest) Reset() {
@@ -262,24 +262,24 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 func (x *LoginRequest) GetLogin() string {
 	if x != nil {
-		return x.Login
+		return x.xxx_hidden_Login
 	}
 	return ""
 }
 
 func (x *LoginRequest) GetPassword() string {
 	if x != nil {
-		return x.Password
+		return x.xxx_hidden_Password
 	}
 	return ""
 }
 
 func (x *LoginRequest) SetLogin(v string) {
-	x.Login = v
+	x.xxx_hidden_Login = v
 }
 
 func (x *LoginRequest) SetPassword(v string) {
-	x.Password = v
+	x.xxx_hidden_Password = v
 }
 
 type LoginRequest_builder struct {
@@ -293,21 +293,21 @@ func (b0 LoginRequest_builder) Build() *LoginRequest {
 	m0 := &LoginRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Login = b.Login
-	x.Password = b.Password
+	x.xxx_hidden_Login = b.Login
+	x.xxx_hidden_Password = b.Password
 	return m0
 }
 
 type LoginResponse struct {
-	state         protoimpl.MessageState `protogen:"hybrid.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	KdfSalt       []byte                 `protobuf:"bytes,2,opt,name=kdf_salt,json=kdfSalt,proto3" json:"kdf_salt,omitempty"`
-	KdfTime       uint32                 `protobuf:"varint,3,opt,name=kdf_time,json=kdfTime,proto3" json:"kdf_time,omitempty"`
-	KdfMemoryKb   uint32                 `protobuf:"varint,4,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3" json:"kdf_memory_kb,omitempty"`
-	KdfThreads    uint32                 `protobuf:"varint,5,opt,name=kdf_threads,json=kdfThreads,proto3" json:"kdf_threads,omitempty"`
-	WrappedDek    []byte                 `protobuf:"bytes,6,opt,name=wrapped_dek,json=wrappedDek,proto3" json:"wrapped_dek,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Token       string                 `protobuf:"bytes,1,opt,name=token,proto3"`
+	xxx_hidden_KdfSalt     []byte                 `protobuf:"bytes,2,opt,name=kdf_salt,json=kdfSalt,proto3"`
+	xxx_hidden_KdfTime     uint32                 `protobuf:"varint,3,opt,name=kdf_time,json=kdfTime,proto3"`
+	xxx_hidden_KdfMemoryKb uint32                 `protobuf:"varint,4,opt,name=kdf_memory_kb,json=kdfMemoryKb,proto3"`
+	xxx_hidden_KdfThreads  uint32                 `protobuf:"varint,5,opt,name=kdf_threads,json=kdfThreads,proto3"`
+	xxx_hidden_WrappedDek  []byte                 `protobuf:"bytes,6,opt,name=wrapped_dek,json=wrappedDek,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
@@ -337,74 +337,74 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 func (x *LoginResponse) GetToken() string {
 	if x != nil {
-		return x.Token
+		return x.xxx_hidden_Token
 	}
 	return ""
 }
 
 func (x *LoginResponse) GetKdfSalt() []byte {
 	if x != nil {
-		return x.KdfSalt
+		return x.xxx_hidden_KdfSalt
 	}
 	return nil
 }
 
 func (x *LoginResponse) GetKdfTime() uint32 {
 	if x != nil {
-		return x.KdfTime
+		return x.xxx_hidden_KdfTime
 	}
 	return 0
 }
 
 func (x *LoginResponse) GetKdfMemoryKb() uint32 {
 	if x != nil {
-		return x.KdfMemoryKb
+		return x.xxx_hidden_KdfMemoryKb
 	}
 	return 0
 }
 
 func (x *LoginResponse) GetKdfThreads() uint32 {
 	if x != nil {
-		return x.KdfThreads
+		return x.xxx_hidden_KdfThreads
 	}
 	return 0
 }
 
 func (x *LoginResponse) GetWrappedDek() []byte {
 	if x != nil {
-		return x.WrappedDek
+		return x.xxx_hidden_WrappedDek
 	}
 	return nil
 }
 
 func (x *LoginResponse) SetToken(v string) {
-	x.Token = v
+	x.xxx_hidden_Token = v
 }
 
 func (x *LoginResponse) SetKdfSalt(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.KdfSalt = v
+	x.xxx_hidden_KdfSalt = v
 }
 
 func (x *LoginResponse) SetKdfTime(v uint32) {
-	x.KdfTime = v
+	x.xxx_hidden_KdfTime = v
 }
 
 func (x *LoginResponse) SetKdfMemoryKb(v uint32) {
-	x.KdfMemoryKb = v
+	x.xxx_hidden_KdfMemoryKb = v
 }
 
 func (x *LoginResponse) SetKdfThreads(v uint32) {
-	x.KdfThreads = v
+	x.xxx_hidden_KdfThreads = v
 }
 
 func (x *LoginResponse) SetWrappedDek(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
-	x.WrappedDek = v
+	x.xxx_hidden_WrappedDek = v
 }
 
 type LoginResponse_builder struct {
@@ -422,12 +422,12 @@ func (b0 LoginResponse_builder) Build() *LoginResponse {
 	m0 := &LoginResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.Token = b.Token
-	x.KdfSalt = b.KdfSalt
-	x.KdfTime = b.KdfTime
-	x.KdfMemoryKb = b.KdfMemoryKb
-	x.KdfThreads = b.KdfThreads
-	x.WrappedDek = b.WrappedDek
+	x.xxx_hidden_Token = b.Token
+	x.xxx_hidden_KdfSalt = b.KdfSalt
+	x.xxx_hidden_KdfTime = b.KdfTime
+	x.xxx_hidden_KdfMemoryKb = b.KdfMemoryKb
+	x.xxx_hidden_KdfThreads = b.KdfThreads
+	x.xxx_hidden_WrappedDek = b.WrappedDek
 	return m0
 }
 

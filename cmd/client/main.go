@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/SatzhanDev/gophKeeper/internal/client/cli"
@@ -15,9 +15,13 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+	slog.SetDefault(logger)
+
 	cfg, err := config.Load(os.Args[1:])
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to load config", "err", err)
+		os.Exit(1)
 	}
 
 	if cfg.ShowVersion {
@@ -25,7 +29,8 @@ func main() {
 		return
 	}
 
-	if err := cli.Run(cfg.ServerAddr); err != nil {
-		log.Fatal(err)
+	if err := cli.Run(cfg.ServerAddr, cfg.TLSCACertFile); err != nil {
+		slog.Error("client exited with error", "err", err)
+		os.Exit(1)
 	}
 }

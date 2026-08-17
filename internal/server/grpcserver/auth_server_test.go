@@ -3,6 +3,7 @@ package grpcserver
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +16,11 @@ import (
 	"github.com/SatzhanDev/gophKeeper/internal/server/service"
 	"github.com/SatzhanDev/gophKeeper/internal/server/storage"
 )
+
+// testLogger — логгер для тестов хендлеров, никуда не пишет (DiscardHandler),
+// чтобы вывод go test оставался чистым, но конструкторам всё равно нужен
+// не-nil логгер, раз он теперь обязательная зависимость.
+var testLogger = slog.New(slog.DiscardHandler)
 
 // fakeAuthService — реализация authServiceIface для тестов хендлера,
 // без реального AuthService и базы данных.
@@ -37,24 +43,38 @@ func (f *fakeAuthService) Login(context.Context, string, string) (string, []byte
 	return f.loginToken, f.loginSalt, f.loginParams, f.loginWrapped, f.loginErr
 }
 
-func TestAuthServer_Register_Success(t *testing.T) {
-	srv := NewAuthServer(&fakeAuthService{registerToken: "tok"})
+func newRegisterRequest(login, password string) *authv1.RegisterRequest {
+	req := &authv1.RegisterRequest{}
+	req.SetLogin(login)
+	req.SetPassword(password)
+	return req
+}
 
-	resp, err := srv.Register(context.Background(), &authv1.RegisterRequest{Login: "ivan", Password: "pass"})
+func newLoginRequest(login, password string) *authv1.LoginRequest {
+	req := &authv1.LoginRequest{}
+	req.SetLogin(login)
+	req.SetPassword(password)
+	return req
+}
+
+func TestAuthServer_Register_Success(t *testing.T) {
+	srv := NewAuthServer(&fakeAuthService{registerToken: "tok"}, testLogger)
+
+	resp, err := srv.Register(context.Background(), newRegisterRequest("ivan", "pass"))
 	require.NoError(t, err)
 	assert.Equal(t, "tok", resp.GetToken())
 }
 
 func TestAuthServer_Register_LoginTaken(t *testing.T) {
-	srv := NewAuthServer(&fakeAuthService{registerErr: storage.ErrLoginTaken})
+	srv := NewAuthServer(&fakeAuthService{registerErr: storage.ErrLoginTaken}, testLogger)
 
-	_, err := srv.Register(context.Background(), &authv1.RegisterRequest{Login: "ivan", Password: "pass"})
+	_, err := srv.Register(context.Background(), newRegisterRequest("ivan", "pass"))
 	require.Error(t, err)
 	assert.Equal(t, codes.AlreadyExists, status.Code(err))
 }
 
 func TestAuthServer_Register_InternalError(t *testing.T) {
-	srv := NewAuthServer(&fakeAuthService{registerErr: errors.New("db is down")})
+	srv := NewAuthServer(&fakeAuthService{registerErr: errors.New("db is down")}, testLogger)
 
 	_, err := srv.Register(context.Background(), &authv1.RegisterRequest{})
 	require.Error(t, err)
@@ -67,9 +87,9 @@ func TestAuthServer_Login_Success(t *testing.T) {
 		loginSalt:    []byte("salt"),
 		loginParams:  model.KDFParams{Time: 1, MemoryKB: 65536, Threads: 4},
 		loginWrapped: []byte("wrapped"),
-	})
+	}, testLogger)
 
-	resp, err := srv.Login(context.Background(), &authv1.LoginRequest{Login: "ivan", Password: "pass"})
+	resp, err := srv.Login(context.Background(), newLoginRequest("ivan", "pass"))
 	require.NoError(t, err)
 	assert.Equal(t, "tok", resp.GetToken())
 	assert.Equal(t, []byte("salt"), resp.GetKdfSalt())
@@ -78,7 +98,7 @@ func TestAuthServer_Login_Success(t *testing.T) {
 }
 
 func TestAuthServer_Login_InvalidCredentials(t *testing.T) {
-	srv := NewAuthServer(&fakeAuthService{loginErr: service.ErrInvalidCredentials})
+	srv := NewAuthServer(&fakeAuthService{loginErr: service.ErrInvalidCredentials}, testLogger)
 
 	_, err := srv.Login(context.Background(), &authv1.LoginRequest{})
 	require.Error(t, err)
@@ -86,7 +106,7 @@ func TestAuthServer_Login_InvalidCredentials(t *testing.T) {
 }
 
 func TestAuthServer_Login_InternalError(t *testing.T) {
-	srv := NewAuthServer(&fakeAuthService{loginErr: errors.New("db is down")})
+	srv := NewAuthServer(&fakeAuthService{loginErr: errors.New("db is down")}, testLogger)
 
 	_, err := srv.Login(context.Background(), &authv1.LoginRequest{})
 	require.Error(t, err)

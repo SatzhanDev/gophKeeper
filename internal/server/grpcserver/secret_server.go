@@ -28,23 +28,25 @@ type secretServiceIface interface {
 type SecretServer struct {
 	secretv1.UnimplementedSecretServiceServer
 	secretService secretServiceIface
+	logger        *slog.Logger
 }
 
 // NewSecretServer создаёт SecretServer поверх готового SecretService.
-func NewSecretServer(secretService secretServiceIface) *SecretServer {
-	return &SecretServer{secretService: secretService}
+// logger передаётся явным аргументом — см. пояснение в NewAuthServer.
+func NewSecretServer(secretService secretServiceIface, logger *slog.Logger) *SecretServer {
+	return &SecretServer{secretService: secretService, logger: logger}
 }
 
 func toProtoSecret(s *model.Secret) *secretv1.Secret {
-	return &secretv1.Secret{
-		Id:        s.ID,
-		Type:      secretv1.SecretType(s.Type),
-		Data:      s.Data,
-		Metadata:  s.Metadata,
-		Version:   int32(s.Version),
-		CreatedAt: s.CreatedAt.Unix(),
-		UpdatedAt: s.UpdatedAt.Unix(),
-	}
+	ps := &secretv1.Secret{}
+	ps.SetId(s.ID)
+	ps.SetType(secretv1.SecretType(s.Type))
+	ps.SetData(s.Data)
+	ps.SetMetadata(s.Metadata)
+	ps.SetVersion(int32(s.Version))
+	ps.SetCreatedAt(s.CreatedAt.Unix())
+	ps.SetUpdatedAt(s.UpdatedAt.Unix())
+	return ps
 }
 
 // CreateSecret реализует secretv1.SecretServiceServer.
@@ -59,10 +61,13 @@ func (s *SecretServer) CreateSecret(ctx context.Context, req *secretv1.CreateSec
 		if errors.Is(err, service.ErrInvalidSecretType) {
 			return nil, status.Error(codes.InvalidArgument, "invalid secret type")
 		}
-		slog.Error("create secret failed", "component", "grpcserver.SecretServer", "method", "CreateSecret", "user_id", userID, "err", err)
+		s.logger.Error("create secret failed", "method", "CreateSecret", "user_id", userID, "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &secretv1.CreateSecretResponse{Id: secret.ID}, nil
+
+	resp := &secretv1.CreateSecretResponse{}
+	resp.SetId(secret.ID)
+	return resp, nil
 }
 
 // GetSecret реализует secretv1.SecretServiceServer.
@@ -77,10 +82,13 @@ func (s *SecretServer) GetSecret(ctx context.Context, req *secretv1.GetSecretReq
 		if errors.Is(err, storage.ErrSecretNotFound) {
 			return nil, status.Error(codes.NotFound, "secret not found")
 		}
-		slog.Error("get secret failed", "component", "grpcserver.SecretServer", "method", "GetSecret", "user_id", userID, "err", err)
+		s.logger.Error("get secret failed", "method", "GetSecret", "user_id", userID, "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &secretv1.GetSecretResponse{Secret: toProtoSecret(secret)}, nil
+
+	resp := &secretv1.GetSecretResponse{}
+	resp.SetSecret(toProtoSecret(secret))
+	return resp, nil
 }
 
 // ListSecrets реализует secretv1.SecretServiceServer.
@@ -92,14 +100,20 @@ func (s *SecretServer) ListSecrets(ctx context.Context, _ *secretv1.ListSecretsR
 
 	secrets, err := s.secretService.List(ctx, userID)
 	if err != nil {
-		slog.Error("list secrets failed", "component", "grpcserver.SecretServer", "method", "ListSecrets", "user_id", userID, "err", err)
+		s.logger.Error("list secrets failed", "method", "ListSecrets", "user_id", userID, "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 
-	resp := &secretv1.ListSecretsResponse{}
+	// Собираем обычный Go-слайс и кладём его в сообщение целиком через
+	// SetSecrets — единообразно с остальным кодом, который везде использует
+	// сеттеры, а не прямое обращение к полям (см. пояснение в auth.go).
+	protoSecrets := make([]*secretv1.Secret, 0, len(secrets))
 	for _, sec := range secrets {
-		resp.Secrets = append(resp.Secrets, toProtoSecret(sec))
+		protoSecrets = append(protoSecrets, toProtoSecret(sec))
 	}
+
+	resp := &secretv1.ListSecretsResponse{}
+	resp.SetSecrets(protoSecrets)
 	return resp, nil
 }
 
@@ -115,10 +129,13 @@ func (s *SecretServer) UpdateSecret(ctx context.Context, req *secretv1.UpdateSec
 		if errors.Is(err, storage.ErrVersionConflict) {
 			return nil, status.Error(codes.Aborted, "version conflict")
 		}
-		slog.Error("update secret failed", "component", "grpcserver.SecretServer", "method", "UpdateSecret", "user_id", userID, "err", err)
+		s.logger.Error("update secret failed", "method", "UpdateSecret", "user_id", userID, "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
-	return &secretv1.UpdateSecretResponse{Version: int32(newVersion)}, nil
+
+	resp := &secretv1.UpdateSecretResponse{}
+	resp.SetVersion(int32(newVersion))
+	return resp, nil
 }
 
 // DeleteSecret реализует secretv1.SecretServiceServer.
@@ -132,7 +149,7 @@ func (s *SecretServer) DeleteSecret(ctx context.Context, req *secretv1.DeleteSec
 		if errors.Is(err, storage.ErrSecretNotFound) {
 			return nil, status.Error(codes.NotFound, "secret not found")
 		}
-		slog.Error("delete secret failed", "component", "grpcserver.SecretServer", "method", "DeleteSecret", "user_id", userID, "err", err)
+		s.logger.Error("delete secret failed", "method", "DeleteSecret", "user_id", userID, "err", err)
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return &secretv1.DeleteSecretResponse{}, nil

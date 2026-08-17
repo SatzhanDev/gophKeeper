@@ -39,8 +39,11 @@ func cmdGet(st *state, args []string) error {
 		return fmt.Errorf("некорректный id: %w", err)
 	}
 
+	req := &secretv1.GetSecretRequest{}
+	req.SetId(id)
+
 	ctx := grpcclient.AuthContext(context.Background(), st.token)
-	resp, err := st.secretClient.GetSecret(ctx, &secretv1.GetSecretRequest{Id: id})
+	resp, err := st.secretClient.GetSecret(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -72,12 +75,13 @@ func cmdAdd(st *state, args []string) error {
 		return err
 	}
 
+	req := &secretv1.CreateSecretRequest{}
+	req.SetType(secretType)
+	req.SetData(encrypted)
+	req.SetMetadata(metadata)
+
 	ctx := grpcclient.AuthContext(context.Background(), st.token)
-	resp, err := st.secretClient.CreateSecret(ctx, &secretv1.CreateSecretRequest{
-		Type:     secretType,
-		Data:     encrypted,
-		Metadata: metadata,
-	})
+	resp, err := st.secretClient.CreateSecret(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -96,8 +100,11 @@ func cmdDelete(st *state, args []string) error {
 		return fmt.Errorf("некорректный id: %w", err)
 	}
 
+	req := &secretv1.DeleteSecretRequest{}
+	req.SetId(id)
+
 	ctx := grpcclient.AuthContext(context.Background(), st.token)
-	_, err = st.secretClient.DeleteSecret(ctx, &secretv1.DeleteSecretRequest{Id: id})
+	_, err = st.secretClient.DeleteSecret(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -140,7 +147,10 @@ func cmdUpdate(st *state, args []string) error {
 
 	ctx := grpcclient.AuthContext(context.Background(), st.token)
 
-	current, err := st.secretClient.GetSecret(ctx, &secretv1.GetSecretRequest{Id: id})
+	getReq := &secretv1.GetSecretRequest{}
+	getReq.SetId(id)
+
+	current, err := st.secretClient.GetSecret(ctx, getReq)
 	if err != nil {
 		return err
 	}
@@ -150,12 +160,13 @@ func cmdUpdate(st *state, args []string) error {
 		return err
 	}
 
-	_, err = st.secretClient.UpdateSecret(ctx, &secretv1.UpdateSecretRequest{
-		Id:       id,
-		Data:     encrypted,
-		Metadata: metadata,
-		Version:  current.GetSecret().GetVersion(),
-	})
+	updateReq := &secretv1.UpdateSecretRequest{}
+	updateReq.SetId(id)
+	updateReq.SetData(encrypted)
+	updateReq.SetMetadata(metadata)
+	updateReq.SetVersion(current.GetSecret().GetVersion())
+
+	_, err = st.secretClient.UpdateSecret(ctx, updateReq)
 	if err != nil {
 		if status.Code(err) == codes.Aborted {
 			return fmt.Errorf("запись изменена на другом устройстве, выполните 'get %d' и попробуйте снова", id)

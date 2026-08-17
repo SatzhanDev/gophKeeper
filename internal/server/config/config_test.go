@@ -19,6 +19,9 @@ func clearEnv(t *testing.T) {
 	t.Setenv("JWT_SECRET", "")
 	t.Setenv("JWT_TTL", "")
 	t.Setenv("GRPC_PORT", "")
+	t.Setenv("HTTP_PORT", "")
+	t.Setenv("TLS_CERT_FILE", "")
+	t.Setenv("TLS_KEY_FILE", "")
 }
 
 func TestLoad_FromFlags(t *testing.T) {

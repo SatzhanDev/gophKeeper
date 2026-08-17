@@ -30,6 +30,23 @@ func (f *fakeAuthClient) Login(context.Context, *authv1.LoginRequest, ...grpc.Ca
 	return f.loginResp, f.loginErr
 }
 
+func newRegisterResponse(token string) *authv1.RegisterResponse {
+	resp := &authv1.RegisterResponse{}
+	resp.SetToken(token)
+	return resp
+}
+
+func newLoginResponse(token string, salt []byte, params crypto.KDFParams, wrapped []byte) *authv1.LoginResponse {
+	resp := &authv1.LoginResponse{}
+	resp.SetToken(token)
+	resp.SetKdfSalt(salt)
+	resp.SetKdfTime(params.Time)
+	resp.SetKdfMemoryKb(params.MemoryKB)
+	resp.SetKdfThreads(uint32(params.Threads))
+	resp.SetWrappedDek(wrapped)
+	return resp
+}
+
 // withFakePassword подменяет readPassword на время теста, чтобы не
 // трогать реальный терминал.
 func withFakePassword(t *testing.T, password string) {
@@ -42,7 +59,7 @@ func withFakePassword(t *testing.T, password string) {
 func TestCmdRegister_Success(t *testing.T) {
 	withFakePassword(t, "master-password")
 
-	st := &state{authClient: &fakeAuthClient{registerResp: &authv1.RegisterResponse{Token: "tok"}}}
+	st := &state{authClient: &fakeAuthClient{registerResp: newRegisterResponse("tok")}}
 
 	err := cmdRegister(st, []string{"ivan"})
 	require.NoError(t, err)
@@ -81,14 +98,7 @@ func TestCmdLogin_Success(t *testing.T) {
 	wrapped, err := crypto.WrapDEK(dek, kek)
 	require.NoError(t, err)
 
-	st := &state{authClient: &fakeAuthClient{loginResp: &authv1.LoginResponse{
-		Token:       "tok",
-		KdfSalt:     salt,
-		KdfTime:     params.Time,
-		KdfMemoryKb: params.MemoryKB,
-		KdfThreads:  uint32(params.Threads),
-		WrappedDek:  wrapped,
-	}}}
+	st := &state{authClient: &fakeAuthClient{loginResp: newLoginResponse("tok", salt, params, wrapped)}}
 
 	err = cmdLogin(st, []string{"ivan"})
 	require.NoError(t, err)
@@ -108,10 +118,7 @@ func TestCmdLogin_WrongPasswordCannotUnwrapDEK(t *testing.T) {
 	wrapped, err := crypto.WrapDEK(dek, kek)
 	require.NoError(t, err)
 
-	st := &state{authClient: &fakeAuthClient{loginResp: &authv1.LoginResponse{
-		Token: "tok", KdfSalt: salt, KdfTime: params.Time, KdfMemoryKb: params.MemoryKB,
-		KdfThreads: uint32(params.Threads), WrappedDek: wrapped,
-	}}}
+	st := &state{authClient: &fakeAuthClient{loginResp: newLoginResponse("tok", salt, params, wrapped)}}
 
 	err = cmdLogin(st, []string{"ivan"})
 	assert.Error(t, err)
